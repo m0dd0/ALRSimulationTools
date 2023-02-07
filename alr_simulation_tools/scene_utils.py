@@ -1,36 +1,50 @@
-from pathlib import Path
 from typing import List, Tuple
 
 import numpy as np
 
 from alr_sim.sims.SimFactory import SimRepository
 from alr_sim.sims.universal_sim.PrimitiveObjects import Box
+from alr_sim.core import Scene
+from alr_sim.sims import MjCamera
+
+
+def reset_scene(factory_string: str, scene: Scene, agent):
+    if factory_string == "pybullet":
+        import pybullet as p
+
+        p.disconnect()
+    elif factory_string == "mujoco":
+        del scene.viewer
+        del scene.model
+        del scene.sim
+    elif factory_string == "mj_beta":
+        from alr_sim.sims.mj_beta.mj_utils.mj_render_singleton import (
+            reset_singleton,
+        )
+
+        reset_singleton()
+        if scene.render_mode == Scene.RenderMode.HUMAN:
+            scene.viewer.close()
+        del scene.viewer
+        del scene.model
+        del scene.data
+    if agent is not None:
+        del agent
+    del scene
 
 
 def create_sample_data(
-    factory_string: str = "mujoco",
-    cam_pos: Tuple[float] = (0.32, 0.0, 0.56),
-    cam_quat: Tuple[float] = (0, 1, 0, 0),
-    cam_height: int = 224,
-    cam_width: int = 224,
-    home_pos: Tuple[float] = (0.32, 0.0, 0.56),
-    home_quat: Tuple[float] = (0, 1, 0, 0),
+    factory_string: str = "mj_beta",
+    cam_pos: Tuple[float] = (0.5, 0.0, 1.0),
+    cam_quat: Tuple[float] = (-0.70710678, 0, 0, 0.70710678),
+    cam_height: int = 480,
+    cam_width: int = 640,
+    robot_pos: Tuple[float] = (0.0, 0.5, -0.01),
+    robot_quat: Tuple[float] = (0, 1, 0, 0),
     object_list: List = None,
     target_obj_name: str = None,
-    destination_path: Path = None,
-    render_mode=Scene.RenderMode.BLIND,
+    render_mode: Scene.RenderMode = Scene.RenderMode.BLIND,
 ):
-    if destination_path is None:
-        destination_path = (
-            Path.home()
-            / "Documents"
-            / "robotic-grasping"
-            / "grconvnet"
-            / "data"
-            / "examples"
-            / "simulation"
-        )
-
     if object_list is None:
         box1 = Box(
             name="box1",
@@ -49,18 +63,18 @@ def create_sample_data(
     agent = sim_factory.create_robot(scene, dt=0.0002)
 
     # configure camera
-    if cam_type == "rgbd_cage":
-        cam = scene.get_object("rgbd_cage")
-    elif cam_type == "inhand":
-        cam = agent.inhand_cam
-
+    if factory_string == "mj_beta":
+        cam = MjCamera("my_cam", init_pos=cam_pos, init_quat=cam_quat)
+    else:
+        raise NotImplementedError()
+    scene.add_object(cam)
     cam.set_cam_params(height=cam_height, width=cam_width)
 
     # start simulation
     scene.start()
 
     # go to start position
-    agent.gotoCartPositionAndQuat(home_pos, home_quat, duration=0.5)
+    agent.gotoCartPositionAndQuat(robot_pos, robot_quat, duration=0.5)
 
     # get camera data
     rgb_img, depth_img = cam.get_image()

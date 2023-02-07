@@ -16,7 +16,7 @@ class YCBLoader:
         pos: Tuple[float, float] = (0.5, 0.3),
         quat: Tuple[float, float, float, float] = (0, 1, 0, 0),
         factory_string: str = "mj_beta",
-        adjust_object_position: bool = False,
+        adjust_object_position: bool = True,
     ):
         """Instantiate a ycb object loader.
 
@@ -120,3 +120,6 @@ class YCBLoader:
 
     def __getitem__(self, index: int):
         return self.get_ycb_object(index)
+
+    def __len__(self):
+        return len(self.object_folders)
