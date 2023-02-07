@@ -13,7 +13,7 @@ class YCBLoader:
     def __init__(
         self,
         ycb_base_folder: Path,
-        pos: Tuple[float, float] = (0.5, 0.3),
+        pos: Tuple[float, float] = (0.5, 0.3, 0),
         quat: Tuple[float, float, float, float] = (0, 1, 0, 0),
         factory_string: str = "mj_beta",
         adjust_object_position: bool = True,
@@ -50,11 +50,11 @@ class YCBLoader:
 
     def get_xml_path(self, index: int):
         obj_path = self.object_folders[index]
-        return obj_path / "textured" / f"{obj_path.name[:4]}.xml"
+        return obj_path / "textured" / f"{obj_path.name[4:]}.xml"
 
     def get_urdf_path(self, index: int):
         obj_path = self.object_folders[index]
-        return obj_path / "textured" / f"{obj_path.name[:4]}.urdf"
+        return obj_path / "textured" / f"{obj_path.name[4:]}.urdf"
 
     def get_obj_path(self, index):
         obj_path = self.object_folders[index]
@@ -86,7 +86,7 @@ class YCBLoader:
             pos[:2] -= to_middle[:2]
             pos[2] -= bounds[0][2]
 
-        name = self.object_folders[index].name
+        name = self.object_folders[index].name[4:]
         obj = None
 
         if factory_string == "mujoco":
@@ -107,7 +107,7 @@ class YCBLoader:
                 pos=pos,
                 quat=quat,
                 root="/",
-                object_dir_path=self.object_folders[index] / "textured",
+                object_dir_path=str(self.object_folders[index] / "textured"),
             )
 
         else:
