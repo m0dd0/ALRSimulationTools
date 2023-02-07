@@ -1,22 +1,16 @@
 from pathlib import Path
 from typing import List, Tuple
-import copy
 
-import open3d as o3d
 import numpy as np
 
-from alr_sim.utils.sim_path import sim_framework_path
-from alr_sim.utils.geometric_transformation import quat2mat
 from alr_sim.sims.SimFactory import SimRepository
-from alr_sim.core import Scene, RobotBase
 from alr_sim.sims.universal_sim.PrimitiveObjects import Box
-
-from grasp_benchmark.utils.ycb_utils import YCBLoader
 
 
 def create_sample_data(
     factory_string: str = "mujoco",
-    cam_type: str = "inhand",
+    cam_pos: Tuple[float] = (0.32, 0.0, 0.56),
+    cam_quat: Tuple[float] = (0, 1, 0, 0),
     cam_height: int = 224,
     cam_width: int = 224,
     home_pos: Tuple[float] = (0.32, 0.0, 0.56),
