@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 from pathlib import Path
 
 import trimesh
@@ -17,6 +17,7 @@ class YCBLoader:
         quat: Tuple[float, float, float, float] = (0, 1, 0, 0),
         factory_string: str = "mj_beta",
         adjust_object_position: bool = True,
+        broken_object_names: List[str] = None,
     ):
         """Instantiate a ycb object loader.
 
@@ -37,6 +38,22 @@ class YCBLoader:
         self.quat = quat
         self.factory_string = factory_string
         self.adjust_object_position = adjust_object_position
+        self.broken_object_names = broken_object_names or [
+            "001_chips_can",
+            "022_windex_bottle",
+            "028_skillet_lid",
+            "038_padlock",
+            "041_small_marker",
+            "049_small_clamp",
+            "072-h_toy_airplane",
+            "072-k_toy_airplane",
+            "073-h_lego_duplo",
+            "073-i_lego_duplo",
+            "073-k_lego_duplo",
+            "073-l_lego_duplo",
+            "073-m_lego_duplo",
+            "076_timer",
+        ]
 
     def get_obj_index(self, obj_name: str) -> int:
         for i, p in enumerate(self.object_folders):
@@ -65,6 +82,9 @@ class YCBLoader:
         obj_mesh = trimesh.load(obj_file, force="mesh")
         bounds = obj_mesh.bounds
         return bounds
+
+    def is_broken(self, index: int) -> bool:
+        return self.get_obj_name(index) in self.broken_object_names
 
     def get_ycb_object(
         self,
