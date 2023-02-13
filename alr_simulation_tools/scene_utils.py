@@ -45,6 +45,7 @@ def create_sample_data(
     target_obj_name: str = None,
     render_mode: Scene.RenderMode = Scene.RenderMode.BLIND,
     wait_time: float = 0.1,
+    move_duration: float = 4,
 ):
     if object_list is None:
         box1 = Box(
@@ -78,7 +79,7 @@ def create_sample_data(
     scene.start()
 
     # go to start position
-    agent.gotoCartPositionAndQuat(robot_pos, robot_quat, duration=0.5)
+    agent.gotoCartPositionAndQuat(robot_pos, robot_quat, duration=move_duration)
     agent.wait(wait_time)
 
     # get camera data
