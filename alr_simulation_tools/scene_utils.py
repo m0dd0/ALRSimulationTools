@@ -5,7 +5,7 @@ import numpy as np
 from alr_sim.sims.SimFactory import SimRepository
 from alr_sim.sims.universal_sim.PrimitiveObjects import Box
 from alr_sim.core import Scene
-from alr_sim.sims import MjCamera, MujocoCamera
+from alr_sim.sims.mj_beta import MjCamera
 
 
 def reset_scene(factory_string: str, scene: Scene, agent):
