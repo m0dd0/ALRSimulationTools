@@ -1,4 +1,5 @@
 from typing import List, Tuple
+import logging
 
 import numpy as np
 
@@ -98,100 +99,81 @@ def create_sample_data(
     cam_intrinsics = cam.intrinsics
     cam_pos, cam_quat = cam.get_cart_pos_quat()
 
-    reset_scene(factory_string, scene, agent)
+    # reset_scene(factory_string, scene, agent)
 
     # save data
-    return {
-        "rgb_img": rgb_img,
-        "depth_img": depth_img,
-        "seg_img": seg_img,
-        "seg_img_all": seg_img_orig,
-        "point_cloud_seg": point_cloud_seg,
-        "point_cloud": point_cloud,
-        "cam_pos": cam_pos,
-        "cam_quat": cam_quat,
-        "cam_intrinsics": cam_intrinsics,
-    }
+    return (
+        {
+            "rgb_img": rgb_img,
+            "depth_img": depth_img,
+            "seg_img": seg_img,
+            "seg_img_all": seg_img_orig,
+            "point_cloud_seg": point_cloud_seg,
+            "point_cloud": point_cloud,
+            "cam_pos": cam_pos,
+            "cam_quat": cam_quat,
+            "cam_intrinsics": cam_intrinsics,
+        },
+        scene,
+        agent,
+    )
 
 
 def execute_grasping_sequence(
     agent,
-    home_pos: np.array,
     grasp_pos: np.array,
-    drop_pos: np.array,
     grasp_quat: np.array,
-    hover_offset: np.array = (0, 0, 0.05),
+    home_pos: np.array = (0.5, 0, 0.5),
+    home_quat: np.array = (0, 1, 0, 0),
+    drop_pos: np.array = (0, 0.5, 0.5),
+    drop_quat: np.array = (0, 1, 0, 0),
+    hover_offset: float = 0.05,
     movement_time: float = 4,
     grasp_movement_time: float = 2,
     wait_time: float = 1,
-    logging: bool = False,
 ):
-    hover_offset = np.array(hover_offset)
+    # hover_offset = np.array(hover_offset)
+    hover_offset = np.array([0, 0, hover_offset])  # TODO offste along grasp axis
+    hover_positon = grasp_pos + hover_offset
 
-    # assumes that the agent is in a safe position similar to home_pos
-
-    # go to position above grasp position
-    if logging:
-        print(f"Going to position above grasp position {grasp_pos + hover_offset}")
-    agent.gotoCartPositionAndQuat(
-        grasp_pos + hover_offset, grasp_quat, duration=movement_time
-    )
+    logging.info(f"Going to home position {home_pos}")
+    agent.gotoCartPositionAndQuat(home_pos, home_quat, duration=movement_time)
     agent.wait(wait_time)
 
-    # open gripper
-    if logging:
-        print("Opening gripper")
+    logging.info(f"Going to hover_ position {hover_positon}")
+    agent.gotoCartPositionAndQuat(hover_positon, grasp_quat, duration=movement_time)
+    agent.wait(wait_time)
+
+    logging.info("Opening gripper")
     agent.open_fingers()
     agent.wait(wait_time)
 
-    # go to grasp position
-    if logging:
-        print(f"Going to grasp position {grasp_pos}")
+    logging.info(f"Going to grasp position {grasp_pos}")
     agent.gotoCartPositionAndQuat(grasp_pos, grasp_quat, duration=grasp_movement_time)
     agent.wait(wait_time)
 
-    # close gripper
-    if logging:
-        print("Closing gripper")
+    logging.info("Closing gripper")
     agent.close_fingers()
     agent.wait(wait_time)
 
-    # go to position above grasp position
-    if logging:
-        print(f"Going to position above grasp position {grasp_pos + hover_offset}")
+    logging.info(f"Going to hover position {hover_positon}")
     agent.gotoCartPositionAndQuat(
-        grasp_pos + hover_offset, grasp_quat, duration=grasp_movement_time
+        hover_positon, grasp_quat, duration=grasp_movement_time
     )
     agent.wait(wait_time)
 
-    # go to home position
-    if home_pos is not None:
-        if logging:
-            print(f"Going to home position {home_pos}")
-        agent.gotoCartPositionAndQuat(home_pos, grasp_quat, duration=movement_time)
-        agent.wait(wait_time)
-
-    # go to drop position
-    if logging:
-        print(f"Going to drop position {drop_pos}")
-    agent.gotoCartPositionAndQuat(drop_pos, grasp_quat, duration=movement_time)
+    logging.info(f"Going to home position {home_pos}")
+    agent.gotoCartPositionAndQuat(home_pos, home_quat, duration=movement_time)
     agent.wait(wait_time)
 
-    # open gripper
-    if logging:
-        print("Opening gripper")
+    logging.info(f"Going to drop position {drop_pos}")
+    agent.gotoCartPositionAndQuat(drop_pos, drop_quat, duration=movement_time)
+    agent.wait(wait_time)
+
+    logging.info("Opening gripper")
     agent.open_fingers()
     agent.wait(wait_time)
 
-    # go to home position
-    if home_pos is not None:
-        if logging:
-            print(f"Going to home position {home_pos}")
-        agent.gotoCartPositionAndQuat(home_pos, grasp_quat, duration=movement_time)
-        agent.wait(wait_time)
-
-    # close gripper
-    if logging:
-        print("Closing gripper")
+    logging.info("Closing gripper")
     agent.close_fingers()
     agent.wait(wait_time)
