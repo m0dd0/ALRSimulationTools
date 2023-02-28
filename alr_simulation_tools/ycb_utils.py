@@ -5,7 +5,7 @@ import trimesh
 import numpy as np
 
 
-class YCBLoader:
+class LegacyYCBLoader:
     """Utility class to load and convert and get information about objects of the
     ycb dataset.
     """
