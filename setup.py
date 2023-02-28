@@ -18,8 +18,13 @@ setuptools.setup(
     # not specifying versions might result in pip downloading multiple versions
     # of a package in order to solve dependencies
     # therfore it might be useful to fix the versions someday
-    install_requires=["numpy", "nptyping", "trimesh"],
-    extras_require={"dev": ["black", "pylint", "jupyter", "ipykernel", "rospkg"]}, # "grasp_benchmark"
+    install_requires=[
+        "numpy==1.23.5",  # 1.23.5 is the last version that supports ros_numpy
+        "nptyping",
+        "trimesh",
+        "scipy",
+    ],
+    extras_require={"dev": ["black", "pylint", "jupyter", "ipykernel", "rospkg"]},
     include_package_data=True,
     use_scm_version=True,
 )
