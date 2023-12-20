@@ -19,7 +19,7 @@ setuptools.setup(
     # of a package in order to solve dependencies
     # therfore it might be useful to fix the versions someday
     install_requires=[
-        "numpy==1.23.5",  # 1.23.5 is the last version that supports ros_numpy
+        "numpy",
         "nptyping",
         "trimesh",
         "scipy",
