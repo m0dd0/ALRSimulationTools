@@ -11,7 +11,7 @@ setuptools.setup(
     # url="",
     classifiers=["Programming Language :: Python :: 3"],
     packages=setuptools.find_packages(),
-    python_requires=">=3.8, <3.11",
+    python_requires=">=3.6",
     install_requires=[
         "numpy",
         "nptyping",

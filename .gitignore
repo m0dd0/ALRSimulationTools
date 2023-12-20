@@ -1,4 +1,4 @@
 *.egg-info
 __pycache__
 MUJOCO_LOG.TXT
-00_experiments.ipynb
+.devcontainer/data/*
