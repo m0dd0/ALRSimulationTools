@@ -10,6 +10,14 @@ from alr_sim.sims.mj_beta import MjCamera
 
 
 def reset_scene(factory_string: str, scene: Scene, agent):
+    """
+    Reset the scene and agent to their initial state depending on the factory_string.
+
+    Args:
+        factory_string: string specifying the simulation factory
+        scene: the scene object
+        agent: the agent object
+    """
     if factory_string == "pybullet":
         import pybullet as p
 
@@ -34,7 +42,7 @@ def reset_scene(factory_string: str, scene: Scene, agent):
     del scene
 
 
-def create_sample_data(
+def create_camera_data(
     factory_string: str = "mj_beta",
     cam_pos: Tuple[float] = (0.5, 0.0, 1.0),
     cam_quat: Tuple[float] = (-0.70710678, 0, 0, 0.70710678),
@@ -47,7 +55,36 @@ def create_sample_data(
     render_mode: Scene.RenderMode = Scene.RenderMode.BLIND,
     wait_time: float = 0.1,
     move_duration: float = 4,
-):
+) -> Dict[str, np.array]:
+    """
+    Create a scene with a camera and returns a bunch of data captured by the camera.
+
+    Args:
+        factory_string (str, optional): string specifying the simulation factory. Defaults to "mj_beta".
+        cam_pos (Tuple[float], optional): position of the camera. Defaults to (0.5, 0.0, 1.0).
+        cam_quat (Tuple[float], optional): quaternion of the camera. Defaults to (-0.70710678, 0, 0, 0.70710678).
+        cam_height (int, optional): height of the camera image in pixels. Defaults to 480.
+        cam_width (int, optional): width of the camera image in pixels. Defaults to 640.
+        robot_pos (Tuple[float], optional): position of the robot eef. Defaults to (0.0, 0.5, -0.01).
+        robot_quat (Tuple[float], optional): quaternion of the robot eef. Defaults to (0, 1, 0, 0).
+        object_list (List, optional): list of objects in the scene. Defaults to a box named "box1".
+        target_obj_name (str, optional): name of the object to segment. Defaults to None.
+        render_mode (Scene.RenderMode, optional): render mode of the scene. Defaults to Scene.RenderMode.BLIND.
+        wait_time (float, optional): wait time after the robot has moved. Defaults to 0.1.
+        move_duration (float, optional): duration of the robot movement. Defaults to 4.
+
+    Returns:
+        Dict[str, np.array]: dictionary containing the camera data. Keys are:
+            - rgb_img: rgb image
+            - depth_img: depth image
+            - seg_img: segmentation image
+            - seg_img_all: segmentation image with all objects
+            - point_cloud_seg: point cloud of the segmented object
+            - point_cloud: point cloud of the whole scene
+            - cam_pos: camera position
+            - cam_quat: camera quaternion
+            - cam_intrinsics: camera intrinsics
+    """
     if object_list is None:
         box1 = Box(
             name="box1",
