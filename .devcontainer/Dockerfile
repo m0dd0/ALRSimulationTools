@@ -100,8 +100,32 @@ RUN apt-get update && \
     echo "echo 'ROS environment initialized'" >> /etc/bash.bashrc
 
 # install ALR simulation framework
-# COPY ./data/SimulationFramework /home/SimulationFramework
-# RUN mkdir /root/.mujoco
-# COPY ./data/mujoco210 /root/.mujoco/mujoco210
+# we copy the repositories to avoid the need of a ssh key in the image
+COPY ./data/SimulationFramework /home/SimulationFramework
+RUN mkdir /root/.mujoco
+COPY ./data/mujoco210 /root/.mujoco/mujoco210
+
+# install scripts from SimulationFramework
+RUN conda install python=3.10 -y && \
+    eval "$(conda shell.bash hook)" && \
+    conda config --add channels conda-forge && \
+    conda config --set channel_priority strict && \
+    conda install mamba -c conda-forge -y -q && \
+    mamba install -c conda-forge pybullet pyyaml scipy opencv pinocchio matplotlib gin-config gym -y -q && \
+    mamba install -c conda-forge scikit-learn addict pandas plyfile tqdm -y -q && \
+    # mamba install -c conda-forge pre-commit -y -q && \
+    # cd `dirname "$BASH_SOURCE"` && pre-commit install && \
+    mamba install -c conda-forge imageio -y -q && \
+    pip install mujoco && \
+    mamba install -c conda-forge glew patchelf -y -q && \
+    conda env config vars set LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.mujoco/mujoco210/bin:/usr/lib/nvidia && \
+    conda env config vars set LD_PRELOAD=$LD_PRELOAD:$CONDA_PREFIX/lib/libGLEW.so && \
+    pip install mujoco-py && \
+    pip install open3d && \
+    pip install -e /home/SimulationFramework && \
+    pip install "cython<3"
+
+# the following runs in the conda base environment
+RUN pip install matplotlib ipykernel
 
 CMD ["bash"]
