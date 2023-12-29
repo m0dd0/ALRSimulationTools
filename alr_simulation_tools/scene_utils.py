@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 import logging
 
 import numpy as np
@@ -11,12 +11,12 @@ from alr_sim.sims.mj_beta import MjCamera
 
 def reset_scene(factory_string: str, scene: Scene, agent):
     """
-    Reset the scene and agent to their initial state depending on the factory_string.
+    Reset the scene and agent.
 
     Args:
-        factory_string: string specifying the simulation factory
-        scene: the scene object
-        agent: the agent object
+        factory_string (str): specifying the simulation factory
+        scene (Scene): the scene object
+        agent (Agent): the agent object
     """
     if factory_string == "pybullet":
         import pybullet as p
