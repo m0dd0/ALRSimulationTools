@@ -1,9 +1,9 @@
 # #!/bin/bash
 
-## create and activate conda environment
-conda create -n alr_ros_env -y -q
-eval "$(conda shell.bash hook)"
-conda activate alr_ros_env
+SIMULATION_FRAMEWORK_PATH=${1:-$HOME/Documents/SimulationFramework}
+echo "Installing SimulationFramework in $SIMULATION_FRAMEWORK_PATH"
+SIMULATION_TOOLS_PATH=${2:-$HOME/Documents/ALRSimulationTools}
+echo "Installing SimulationTools in $SIMULATION_TOOLS_PATH"
 
 ## install ros
 conda config --env --add channels conda-forge
@@ -30,10 +30,10 @@ conda env config vars set LD_PRELOAD=$LD_PRELOAD:$CONDA_PREFIX/lib/libGLEW.so
 pip install mujoco-py
 
 pip install open3d
-cd "$1" && pip install -e .
+pip install -e $SIMULATION_FRAMEWORK_PATH
 pip install "cython<3"
 
 ## install of tools
-pip install -e "`dirname $BASH_SOURCE`/.."
+pip install -e $SIMULATION_TOOLS_PATH
 
 exit 0
