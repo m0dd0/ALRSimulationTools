@@ -137,8 +137,6 @@ def create_camera_data(
     cam_intrinsics = cam.intrinsics
     cam_pos, cam_quat = cam.get_cart_pos_quat()
 
-    # reset_scene(factory_string, scene, agent)
-
     # save data
     return (
         {

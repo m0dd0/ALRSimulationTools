@@ -15,9 +15,9 @@ setuptools.setup(
     install_requires=[
         # SimulationFramework
         "numpy",
-        "nptyping",
         "trimesh",
         "scipy",
+        "ros_numpy",
     ],
     extras_require={"dev": ["black", "pylint", "jupyter", "ipykernel"]},
     include_package_data=True,
