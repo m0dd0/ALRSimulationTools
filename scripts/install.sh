@@ -34,6 +34,6 @@ pip install -e $SIMULATION_FRAMEWORK_PATH
 pip install "cython<3"
 
 ## install of tools
-pip install -e $SIMULATION_TOOLS_PATH
+pip install -e $SIMULATION_TOOLS_PATH[dev]
 
 exit 0
