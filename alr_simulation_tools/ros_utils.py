@@ -27,15 +27,15 @@ def pos_quat_to_ros_msg(
     quat: NpArray["4", float],
     header: Optional[Header] = None,
 ) -> PoseStamped:
-    """Converts a position and quaternion to a ROS PoseStamped message
+    """Convert a position and quaternion to a ROS PoseStamped message
 
     Args:
-        pos (NpArray["3", float]): position
-        quat (NpArray["4", float]): quaternion
-        header (Optional[Header], optional): ROS header. Defaults to None.
+        pos: Position in x,y,z
+        quat: Quaternion in w,x,y,z
+        header: ROS header
 
     Returns:
-        PoseStamped: ROS PoseStamped message
+        ROS PoseStamped message
     """
     pos_msg = PoseStamped()
 
@@ -53,23 +53,20 @@ def pos_quat_to_ros_msg(
     return pos_msg
 
 
-def pointcloud_to_ros_msg(
-    point_cloud_points: NpArray["N, 3", float],
-    point_cloud_colors: NpArray["N, 3", int],
+def pc_to_ros_msg(
+    pc_points: NpArray["N, 3", float],
+    pc_colors: NpArray["N, 3", int],
     header: Optional[Header] = None,
 ) -> PointCloud2:
-    """Convert a point cloud to a ROS PointCloud2 message
-
-    Args:
-        point_cloud_points (NpArray["*, 3", float]): Point cloud points in x,y,z
-        point_cloud_colors (NpArray["*, 3", int]): Point cloud colors in r,g,b
-        header (Optional[Header], optional): ROS header. Defaults to None.
-
-    Returns:
-        PointCloud2: ROS PointCloud2 message
+    """
+    Convert a point cloud to a ROS PointCloud2 message
+    :param pc_points: Point cloud points in x,y,z
+    :param pc_colors: Point cloud colors in r,g,b
+    :param header: ROS header
+    :return: ROS PointCloud2 message
     """
     pc_data = np.zeros(
-        point_cloud_points.shape[0],
+        pc_points.shape[0],
         dtype=[
             ("x", np.float32),
             ("y", np.float32),
@@ -77,11 +74,11 @@ def pointcloud_to_ros_msg(
             ("rgb", np.uint32),
         ],
     )
-    pc_data["x"] = point_cloud_points[:, 0]
-    pc_data["y"] = point_cloud_points[:, 1]
-    pc_data["z"] = point_cloud_points[:, 2]
+    pc_data["x"] = pc_points[:, 0]
+    pc_data["y"] = pc_points[:, 1]
+    pc_data["z"] = pc_points[:, 2]
 
-    rgb = (point_cloud_colors * 255).astype(dtype=np.uint32)()
+    rgb = rgb_float_to_int(pc_colors)
     pc_data["rgb"] = rgb_array_to_uint32(rgb)
 
     pc_msg = ros_numpy.msgify(PointCloud2, pc_data)
@@ -93,7 +90,7 @@ def pointcloud_to_ros_msg(
 
 
 def depth_img_to_ros_msg(
-    depth_img: NDArray[Shape["*, *"], Float], header: Optional[Header] = None
+    depth_img: NpArray["H,W", float], header: Optional[Header] = None
 ) -> Image:
     """
     Convert a depth image to a ROS Image message
@@ -111,7 +108,7 @@ def depth_img_to_ros_msg(
 
 
 def rgb_img_to_ros_msg(
-    rgb_img: NDArray[Shape["*, *, 3"], Int], header: Optional[Header] = None
+    rgb_img: NpArray["*, *, 3", int], header: Optional[Header] = None
 ) -> Image:
     """
     Convert a RGB image to a ROS Image message
@@ -128,7 +125,7 @@ def rgb_img_to_ros_msg(
 
 
 def seg_img_to_ros_msg(
-    seg_img: NDArray[Shape["*, *"], Int], header: Optional[Header] = None
+    seg_img: NpArray["H,W", int], header: Optional[Header] = None
 ) -> Image:
     """
     Convert a segmentation image to a ROS Image message
@@ -145,7 +142,7 @@ def seg_img_to_ros_msg(
 
 
 def cam_intrinsics_to_ros_msg(
-    cam_intrinsics: NDArray[Shape["3, 3"], Float],
+    cam_intrinsics: NpArray["3, 3", float],
     height: int,
     width: int,
     header: Optional[Header] = None,
@@ -184,22 +181,34 @@ def cam_intrinsics_to_ros_msg(
     return camera_info
 
 
-####################
-#  MULTI ROS MSGS  #
-####################
 def create_grasp_planner_request(
-    rgb_img: NpArray["H,W,3", int],
-    depth_img: NpArray["H,W", float],
-    seg_img: NpArray["H,W", int],
-    point_cloud_points: NpArray["N,3", float],
-    point_cloud_colors: NpArray["N,3", float],
-    cam_pos: NpArray["3", float],
-    cam_quat: NpArray["4", float],
-    cam_intrinsics: NpArray["3,3", float],
-    cam_height: int,
-    cam_width: int,
+    rgb_img: NpArray[Shape["*, *, 3"], Float],
+    depth_img: NpArray[Shape["*, *"], Float],
+    seg_img: NDArray[Shape["*, *"], Int],
+    pc_points: NDArray[Shape["*, 3"], Float],
+    pc_colors: NDArray[Shape["*, 3"], Int],
+    cam_pos: NDArray[Shape["3"], Float],
+    cam_quat: NDArray[Shape["4"], Float],
+    cam_intrinsics: NDArray[Shape["3, 3"], Float],
+    cam_height: float,
+    cam_width: float,
     num_of_candidates: int = 1,
 ) -> GraspPlannerRequest:
+    """
+    Create a GraspPlannerRequest ROS message from all necessary data
+    :param rgb_img: RGB image in width,height,rgb
+    :param depth_img: Depth image in width,height,meters
+    :param seg_img: Segmentation image in width,height,(1, 0)
+    :param pc_points: Point cloud in x,y,z
+    :param pc_colors: Point cloud colors in r,g,b
+    :param cam_pos: Camera position in x,y,z
+    :param cam_quat: Camera orientation in x,y,z,w
+    :param cam_intrinsics: Camera intrinsics matrix
+    :param cam_height: Camera height
+    :param cam_width: Camera width
+    :param num_of_candidates: Number of grasp candidates to return
+    :return: GraspPlannerRequest ROS message
+    """
     planner_req = GraspPlannerRequest()
 
     header = Header()
