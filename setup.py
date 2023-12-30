@@ -13,12 +13,13 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     python_requires=">=3.6",
     install_requires=[
+        # SimulationFramework
         "numpy",
         "nptyping",
         "trimesh",
         "scipy",
     ],
-    extras_require={"dev": ["black", "pylint", "jupyter", "ipykernel", "rospkg"]},
+    extras_require={"dev": ["black", "pylint", "jupyter", "ipykernel"]},
     include_package_data=True,
     use_scm_version=True,
 )
