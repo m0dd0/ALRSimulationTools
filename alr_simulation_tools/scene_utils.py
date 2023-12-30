@@ -5,7 +5,7 @@ import numpy as np
 
 from alr_sim.sims.SimFactory import SimRepository
 from alr_sim.sims.universal_sim.PrimitiveObjects import Box
-from alr_sim.core import Scene
+from alr_sim.core import Scene, RobotBase
 from alr_sim.sims.mj_beta import MjCamera
 
 
@@ -55,7 +55,7 @@ def create_camera_data(
     render_mode: Scene.RenderMode = Scene.RenderMode.BLIND,
     wait_time: float = 0.1,
     move_duration: float = 4,
-) -> Dict[str, np.array]:
+) -> Tuple[Dict[str, np.array], Scene, RobotBase]:
     """
     Create a scene with a camera and returns a bunch of data captured by the camera.
 
@@ -74,7 +74,8 @@ def create_camera_data(
         move_duration (float, optional): duration of the robot movement. Defaults to 4.
 
     Returns:
-        Dict[str, np.array]: dictionary containing the camera data. Keys are:
+        Tuple[Dict[str, np.array], Scene, RobotBase]:
+            dictionary containing the camera data. Keys are:
             - rgb_img: rgb image
             - depth_img: depth image
             - seg_img: segmentation image
@@ -157,7 +158,7 @@ def create_camera_data(
 
 
 def execute_grasping_sequence(
-    agent,
+    agent: RobotBase,
     grasp_pos: np.array,
     grasp_quat: np.array,
     home_pos: np.array = (0.5, 0, 0.5),
@@ -169,6 +170,32 @@ def execute_grasping_sequence(
     grasp_movement_time: float = 2,
     wait_time: float = 1,
 ):
+    """Execute a grasping sequence with the given agent.
+    The sequence is:
+    - go to home position
+    - go to hover position
+    - open gripper
+    - go to grasp position
+    - close gripper
+    - go to hover position
+    - go to home position
+    - go to drop position
+    - open gripper
+    - close gripper
+
+    Args:
+        agent (RobotBase): the agent object
+        grasp_pos (np.array): position of the grasp
+        grasp_quat (np.array): quaternion of the grasp
+        home_pos (np.array, optional): position of the home position. Defaults to (0.5, 0, 0.5).
+        home_quat (np.array, optional): quaternion of the home position. Defaults to (0, 1, 0, 0).
+        drop_pos (np.array, optional): position of the drop position. Defaults to (0, 0.5, 0.5).
+        drop_quat (np.array, optional): quaternion of the drop position. Defaults to (0, 1, 0, 0).
+        hover_offset (float, optional): offset along the grasp axis. Defaults to 0.05.
+        movement_time (float, optional): duration of the movement. Defaults to 4.
+        grasp_movement_time (float, optional): duration of the movement for grasping. Defaults to 2.
+        wait_time (float, optional): wait time after the robot has moved. Defaults to 1.
+    """
     # hover_offset = np.array(hover_offset)
     hover_offset = np.array([0, 0, hover_offset])  # TODO offste along grasp axis
     hover_positon = grasp_pos + hover_offset
