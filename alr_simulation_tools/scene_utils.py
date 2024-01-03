@@ -42,7 +42,7 @@ def reset_scene(factory_string: str, scene: Scene, agent):
     del scene
 
 
-def create_camera_data(
+def record_camera_data(
     factory_string: str = "mj_beta",
     cam_pos: Tuple[float] = (0.5, 0.0, 1.0),
     cam_quat: Tuple[float] = (-0.70710678, 0, 0, 0.70710678),
