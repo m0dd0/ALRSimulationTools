@@ -14,7 +14,7 @@ RUN echo 'Etc/UTC' > /etc/timezone && \
     apt-get install -q -y --no-install-recommends tzdata && \
     rm -rf /var/lib/apt/lists/*
 
-# install basic packages
+# install basic packages (there might be some packages which are not actually needed)
 RUN apt-get update && \ 
     apt-get install -q -y --no-install-recommends \
     dirmngr \ 
@@ -30,6 +30,7 @@ RUN apt-get update && \
     libsm6 \
     libxext6 \
     freeglut3-dev \
+    python3.10 \
     python3-pip \
     ca-certificates \
     bzip2 \
@@ -55,34 +56,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     pip3 install --upgrade pip
 
-# setup conda
-ENV PATH /opt/conda/bin:$PATH
-ARG CONDA_VERSION=py311_23.11.0-1
-RUN set -x && \
-    UNAME_M="$(uname -m)" && \
-    if [ "${UNAME_M}" = "x86_64" ]; then \
-    MINICONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh"; \
-    SHA256SUM="5b3cefe534e23541f5f703f40d4818e361c3615dbf14651a0f29554c3fc3d0fd"; \
-    elif [ "${UNAME_M}" = "s390x" ]; then \
-    MINICONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-s390x.sh"; \
-    SHA256SUM="04586c734987a39114b81384014c2cfa89360c518371b6fa249d3062efca27fe"; \
-    elif [ "${UNAME_M}" = "aarch64" ]; then \
-    MINICONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-aarch64.sh"; \
-    SHA256SUM="63c06a1974695e50bbe767a030903d169e637e42d5b7b6d30876b19a01fbbad8"; \
-    fi && \
-    wget "${MINICONDA_URL}" -O miniconda.sh -q && \
-    echo "${SHA256SUM} miniconda.sh" > shasum && \
-    if [ "${CONDA_VERSION}" != "latest" ]; then sha256sum --check --status shasum; fi && \
-    mkdir -p /opt && \
-    bash miniconda.sh -b -p /opt/conda && \
-    rm miniconda.sh shasum && \
-    ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
-    echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
-    echo "conda activate base" >> ~/.bashrc && \
-    find /opt/conda/ -follow -type f -name '*.a' -delete && \
-    find /opt/conda/ -follow -type f -name '*.js.map' -delete && \
-    /opt/conda/bin/conda clean -afy
-
 # setup sources.list and keys for ros packages
 RUN echo "deb http://packages.ros.org/ros/ubuntu focal main" > /etc/apt/sources.list.d/ros1-latest.list && \
     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
@@ -100,32 +73,20 @@ RUN apt-get update && \
     echo "echo 'ROS environment initialized'" >> /etc/bash.bashrc
 
 # install ALR simulation framework
-# we copy the repositories to avoid the need of a ssh key in the image
 COPY ./data/SimulationFramework /home/SimulationFramework
-RUN mkdir /root/.mujoco
-COPY ./data/mujoco210 /root/.mujoco/mujoco210
+# RUN mamba install -c conda-forge pybullet pyyaml scipy opencv pinocchio matplotlib gin-config gym -y -q && \
+#     mamba install -c conda-forge scikit-learn addict pandas plyfile tqdm -y -q && \
+#     mamba install -c conda-forge imageio -y -q && \
+#     pip install mujoco==2.3.7 && \
+#     mamba install -c conda-forge glew patchelf -y -q && \
+#     conda env config vars set LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.mujoco/mujoco210/bin:/usr/lib/nvidia && \
+#     conda env config vars set LD_PRELOAD=$LD_PRELOAD:$CONDA_PREFIX/lib/libGLEW.so && \
+#     pip install mujoco-py && \
+#     pip install open3d && \
+#     pip install -e /home/SimulationFramework && \
+#     pip install "cython<3"Fix bug in login functionality
 
-# install scripts from SimulationFramework
-RUN conda install python=3.10 -y && \
-    eval "$(conda shell.bash hook)" && \
-    conda config --add channels conda-forge && \
-    conda config --set channel_priority strict && \
-    conda install mamba -c conda-forge -y -q && \
-    mamba install -c conda-forge pybullet pyyaml scipy opencv pinocchio matplotlib gin-config gym -y -q && \
-    mamba install -c conda-forge scikit-learn addict pandas plyfile tqdm -y -q && \
-    # mamba install -c conda-forge pre-commit -y -q && \
-    # cd `dirname "$BASH_SOURCE"` && pre-commit install && \
-    mamba install -c conda-forge imageio -y -q && \
-    pip install mujoco && \
-    mamba install -c conda-forge glew patchelf -y -q && \
-    conda env config vars set LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.mujoco/mujoco210/bin:/usr/lib/nvidia && \
-    conda env config vars set LD_PRELOAD=$LD_PRELOAD:$CONDA_PREFIX/lib/libGLEW.so && \
-    pip install mujoco-py && \
-    pip install open3d && \
-    pip install -e /home/SimulationFramework && \
-    pip install "cython<3"
-
-# the following runs in the conda base environment
-RUN pip install matplotlib ipykernel
+# # the following runs in the conda base environment
+# RUN pip install matplotlib ipykernel
 
 CMD ["bash"]
