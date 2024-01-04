@@ -5,7 +5,6 @@ FROM ${PARENT_IMAGE}
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 ENV ROS_DISTRO noetic
-ENV CATKIN_WS_DIR ${CATKIN_WS_DIR}
 
 # setup timezone
 RUN echo 'Etc/UTC' > /etc/timezone && \
@@ -74,19 +73,23 @@ RUN apt-get update && \
 
 # install ALR simulation framework
 COPY ./data/SimulationFramework /home/SimulationFramework
-# RUN mamba install -c conda-forge pybullet pyyaml scipy opencv pinocchio matplotlib gin-config gym -y -q && \
-#     mamba install -c conda-forge scikit-learn addict pandas plyfile tqdm -y -q && \
-#     mamba install -c conda-forge imageio -y -q && \
-#     pip install mujoco==2.3.7 && \
-#     mamba install -c conda-forge glew patchelf -y -q && \
-#     conda env config vars set LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.mujoco/mujoco210/bin:/usr/lib/nvidia && \
-#     conda env config vars set LD_PRELOAD=$LD_PRELOAD:$CONDA_PREFIX/lib/libGLEW.so && \
-#     pip install mujoco-py && \
-#     pip install open3d && \
-#     pip install -e /home/SimulationFramework && \
-#     pip install "cython<3"Fix bug in login functionality
-
-# # the following runs in the conda base environment
-# RUN pip install matplotlib ipykernel
+RUN python3 -m pip install pybullet \
+    pyyaml \
+    scipy \
+    opencv-python\
+    pinocchio \
+    matplotlib \
+    gin-config \
+    gym \
+    scikit-learn \
+    ddict \
+    pandas \
+    plyfile \
+    tqdm \
+    imageio \
+    mujoco==2.3.7 && \ 
+    python3 -m pip install --ignore-installed open3d && \
+    python3 -m pip install /home/SimulationFramework && \
+    python3 -m pip install "cython<3"
 
 CMD ["bash"]

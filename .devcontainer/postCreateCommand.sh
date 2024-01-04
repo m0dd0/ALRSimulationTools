@@ -1,1 +1,1 @@
-/opt/conda/bin/python -c "from alr_sim.sims.SimFactory import SimRepository"
+pip install /home/ALRSimulationTools[dev]
