@@ -1,7 +1,7 @@
 import setuptools
 
 setuptools.setup(
-    name="alr_simulation_tools",
+    name="alr_sim_tools",
     version="0.0.1",
     author="Moritz Hesche",
     author_email="mo.hesche@gmail.com",

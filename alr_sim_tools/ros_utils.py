@@ -9,7 +9,7 @@ from geometry_msgs.msg import PoseStamped, TransformStamped
 from sensor_msgs.msg import CameraInfo, Image, PointCloud2
 
 
-from alr_simulation_tools.typing_utils import NpArray
+from alr_sim_tools.typing_utils import NpArray
 
 from alr_sim.utils.point_clouds import rgb_array_to_uint32, rgb_float_to_int
 
