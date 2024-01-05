@@ -29,8 +29,6 @@ RUN apt-get update && \
     libsm6 \
     libxext6 \
     freeglut3-dev \
-    python3.10 \
-    python3-pip \
     ca-certificates \
     bzip2 \
     libglib2.0-0 \
@@ -50,10 +48,10 @@ RUN apt-get update && \
     procps \
     subversion \
     wget \
+    python3-pip \
     libosmesa6-dev && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    pip3 install --upgrade pip
+    rm -rf /var/lib/apt/lists/* 
 
 # setup sources.list and keys for ros packages
 RUN echo "deb http://packages.ros.org/ros/ubuntu focal main" > /etc/apt/sources.list.d/ros1-latest.list && \
@@ -73,7 +71,7 @@ RUN apt-get update && \
 
 # install ALR simulation framework
 COPY ./data/SimulationFramework /home/SimulationFramework
-RUN python3 -m pip install pybullet \
+RUN pip install pybullet \
     pyyaml \
     scipy \
     opencv-python\
@@ -87,9 +85,9 @@ RUN python3 -m pip install pybullet \
     plyfile \
     tqdm \
     imageio \
-    mujoco==2.3.7 && \ 
-    python3 -m pip install --ignore-installed open3d && \
-    python3 -m pip install /home/SimulationFramework && \
-    python3 -m pip install "cython<3"
+    mujoco==2.3.7 \
+    open3d && \
+    pip install /home/SimulationFramework && \ 
+    pip install "cython<3"
 
 CMD ["bash"]

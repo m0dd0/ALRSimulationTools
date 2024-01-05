@@ -1,1 +1,1 @@
-pip install /home/ALRSimulationTools[dev]
+pip install -e /workspaces/ALRSimulationTools[dev]

@@ -23,7 +23,5 @@
             ]
         }
     },
-    "workspaceMount": "source=${localWorkspaceFolder},target=/home/ALRSimulationTools,type=bind",
-    "workspaceFolder": "/home/ALRSimulationTools",
     "postCreateCommand": "./.devcontainer/postCreateCommand.sh"
 }
