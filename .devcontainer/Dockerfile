@@ -15,6 +15,7 @@ RUN echo 'Etc/UTC' > /etc/timezone && \
 
 # install basic packages (there might be some packages which are not actually needed)
 RUN apt-get update && \ 
+    apt-get upgrade -y && \
     apt-get install -q -y --no-install-recommends \
     dirmngr \ 
     gnupg2 \
@@ -53,6 +54,8 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* 
 
+RUN pip install --upgrade pip
+
 # setup sources.list and keys for ros packages
 RUN echo "deb http://packages.ros.org/ros/ubuntu focal main" > /etc/apt/sources.list.d/ros1-latest.list && \
     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
@@ -71,11 +74,13 @@ RUN apt-get update && \
 
 # install ALR simulation framework
 COPY ./data/SimulationFramework /home/SimulationFramework
-RUN pip install pybullet \
+RUN rm -rf /usr/lib/python3/dist-packages/yaml && \
+    rm -rf /usr/lib/python3/dist-packages/PyYAML-* && \
+    pip install pybullet \
     pyyaml \
     scipy \
     opencv-python\
-    pinocchio \
+    pin \
     matplotlib \
     gin-config \
     gym \
@@ -87,7 +92,7 @@ RUN pip install pybullet \
     imageio \
     mujoco==2.3.7 \
     open3d && \
-    pip install /home/SimulationFramework && \ 
+    pip install -e /home/SimulationFramework && \ 
     pip install "cython<3"
 
 CMD ["bash"]
