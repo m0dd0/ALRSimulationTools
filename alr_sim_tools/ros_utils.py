@@ -1,4 +1,5 @@
 from typing import Optional, Tuple
+from pathlib import Path
 
 import numpy as np
 
@@ -19,7 +20,10 @@ from alr_sim.utils.point_clouds import rgb_array_to_uint32, rgb_float_to_int
 # from alr_sim.core.Camera import Camera
 # from alr_sim.utils.geometric_transformation import posRotMat2TFMat
 # from alr_sim.utils.point_clouds import rgb_array_to_uint32, rgb_float_to_int
+import sys
+
 try:
+    sys.path.append(str((Path(__file__).parent / "ros_msg_srv_definitions").absolute()))
     from grasping_benchmarks_ros.srv import (
         GraspPlannerRequest,
         GraspPlannerResponse,
