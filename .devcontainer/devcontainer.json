@@ -5,7 +5,14 @@
     },
     "runArgs": [
         "--gpus",
-        "all"
+        "all",
+        "--network",
+        "host",
+        // "-v",
+        // "/tmp/.X11-unix:/tmp/.X11-unix",
+        // "--env",
+        // "DISPLAY=${localEnv:DISPLAY}",
+        // "--privileged"
     ],
     "customizations": {
         "vscode": {
