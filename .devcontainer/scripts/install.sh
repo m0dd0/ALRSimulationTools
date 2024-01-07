@@ -1,9 +1,16 @@
 # #!/bin/bash
 
 SIMULATION_FRAMEWORK_PATH=${1:-$HOME/Documents/SimulationFramework}
-echo "Installing SimulationFramework in $SIMULATION_FRAMEWORK_PATH"
+echo "Installing SimulationFramework from $SIMULATION_FRAMEWORK_PATH"
 SIMULATION_TOOLS_PATH=${2:-$HOME/Documents/ALRSimulationTools}
-echo "Installing SimulationTools in $SIMULATION_TOOLS_PATH"
+echo "Installing SimulationTools from $SIMULATION_TOOLS_PATH"
+ENVIRONMENT_NAME=${3:-"alr_tools"}
+echo "Creating new conda environment $ENVIRONMENT_NAME"
+
+## create conda environment
+conda create -n $ENVIRONMENT_NAME python=3.9 -y -q
+eval "$(conda shell.bash hook)"
+conda activate $ENVIRONMENT_NAME
 
 ## install ros
 conda config --env --add channels conda-forge
