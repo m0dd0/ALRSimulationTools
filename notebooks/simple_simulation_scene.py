@@ -47,4 +47,5 @@ for target_pos, target_quat, movement_duration, wait_duration in zip(
 
 scene.stop_logging()
 reset_scene(FACTORY_SRTING, scene, agent)
-glfw.terminate()
+# glfw.terminate()
+print("Done")

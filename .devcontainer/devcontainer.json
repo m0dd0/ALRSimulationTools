@@ -6,13 +6,8 @@
     "runArgs": [
         "--gpus",
         "all",
-        "--network",
+        "--network", // do NOT set when using vnc server feature for GUI!!!
         "host",
-        // "-v",
-        // "/tmp/.X11-unix:/tmp/.X11-unix",
-        // "--env",
-        // "DISPLAY=${localEnv:DISPLAY}",
-        // "--privileged"
     ],
     "customizations": {
         "vscode": {
@@ -30,5 +25,5 @@
             ]
         }
     },
-    "postCreateCommand": "./.devcontainer/postCreateCommand.sh"
+    // "postCreateCommand": "./.devcontainer/postCreateCommand.sh"
 }
