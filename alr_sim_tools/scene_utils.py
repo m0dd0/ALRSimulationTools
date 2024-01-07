@@ -76,15 +76,17 @@ def record_camera_data(
     Returns:
         Tuple[Dict[str, np.array], Scene, RobotBase]:
             dictionary containing the camera data. Keys are:
-            - rgb_img: rgb image
-            - depth_img: depth image
-            - seg_img: segmentation image
-            - seg_img_all: segmentation image with all objects
-            - point_cloud_seg: point cloud of the segmented object
-            - point_cloud: point cloud of the whole scene
-            - cam_pos: camera position
-            - cam_quat: camera quaternion
-            - cam_intrinsics: camera intrinsics
+            - rgb_img: rgb image (HxBx3)
+            - depth_img: depth image (HxB)
+            - seg_img: segmentation image (HxB)
+            - seg_img_all: segmentation image with all objects (HxB)
+            - point_cloud_points: point cloud (Nx3)
+            - point_cloud_colors: point cloud colors (Nx3)
+            - point_cloud_seg_points: point cloud of the segmented object (Mx3)
+            - point_cloud_seg_colors: point cloud colors of the segmented object (Mx3)
+            - cam_pos: camera position (3)
+            - cam_quat: camera quaternion (4)
+            - cam_intrinsics: camera intrinsics (3x3)
     """
     if object_list is None:
         box1 = Box(
@@ -123,13 +125,13 @@ def record_camera_data(
 
     # get camera data
     rgb_img, depth_img = cam.get_image()
-    point_cloud = cam.calc_point_cloud()
+    point_cloud_points, point_cloud_colors = cam.calc_point_cloud()
     target_obj_id = scene.get_obj_seg_id(obj_name=target_obj_name)
     seg_img_orig = cam.get_segmentation(depth=False)
 
     seg_img = np.where(seg_img_orig == target_obj_id, 1, 0)
 
-    point_cloud_seg = cam.calc_point_cloud_from_images(
+    point_cloud_seg_points, point_cloud_seg_colors = cam.calc_point_cloud_from_images(
         rgb_img, np.where(depth_img * seg_img == 0, np.nan, depth_img)
     )
 
@@ -144,8 +146,10 @@ def record_camera_data(
             "depth_img": depth_img,
             "seg_img": seg_img,
             "seg_img_all": seg_img_orig,
-            "point_cloud_seg": point_cloud_seg,
-            "point_cloud": point_cloud,
+            "point_cloud_points": point_cloud_points,
+            "point_cloud_colors": point_cloud_colors,
+            "point_cloud_seg_points": point_cloud_seg_points,
+            "point_cloud_seg_colors": point_cloud_seg_colors,
             "cam_pos": cam_pos,
             "cam_quat": cam_quat,
             "cam_intrinsics": cam_intrinsics,
