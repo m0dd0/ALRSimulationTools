@@ -1,0 +1,5 @@
+*.egg-info
+__pycache__
+MUJOCO_LOG.TXT
+.devcontainer/data/*
+build/

@@ -1,0 +1,29 @@
+{
+    "build": {
+        "dockerfile": "Dockerfile",
+        "args": {}
+    },
+    "runArgs": [
+        "--gpus",
+        "all",
+        "--network", // do NOT set when using vnc server feature for GUI!!!
+        "host",
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "GitHub.copilot",
+                "mhutchie.git-graph",
+                "ms-python.black-formatter",
+                "GitHub.copilot-chat",
+                "ms-toolsai.jupyter",
+                "ms-toolsai.vscode-jupyter-cell-tags",
+                "ms-toolsai.jupyter-keymap",
+                "ms-toolsai.jupyter-renderers",
+                "ms-toolsai.vscode-jupyter-slideshow",
+                "Percy.vscode-numpy-viewer"
+            ]
+        }
+    },
+    // "postCreateCommand": "./.devcontainer/postCreateCommand.sh"
+}
