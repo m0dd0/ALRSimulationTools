@@ -1,5 +1,6 @@
 from typing import Optional, Tuple
 from pathlib import Path
+import sys
 
 import numpy as np
 
@@ -9,31 +10,12 @@ from std_msgs.msg import Header
 from geometry_msgs.msg import PoseStamped, TransformStamped
 from sensor_msgs.msg import CameraInfo, Image, PointCloud2
 
+from alr_sim.utils.point_clouds import rgb_array_to_uint32, rgb_float_to_int
 
 from alr_sim_tools.typing_utils import NpArray
 
-from alr_sim.utils.point_clouds import rgb_array_to_uint32, rgb_float_to_int
-
-# import tf2_ros
-# from rospy import Publisher
-
-# from alr_sim.core.Camera import Camera
-# from alr_sim.utils.geometric_transformation import posRotMat2TFMat
-# from alr_sim.utils.point_clouds import rgb_array_to_uint32, rgb_float_to_int
-import sys
-
-try:
-    sys.path.append(str((Path(__file__).parent / "ros_msg_srv_definitions").absolute()))
-    from grasping_benchmarks_ros.srv import (
-        GraspPlannerRequest,
-        GraspPlannerResponse,
-        GraspPlanner,
-    )
-except ImportError:
-    print("Could not import grasping_benchmarks_ros")
-    GraspPlannerRequest = None
-    GraspPlannerResponse = None
-    GraspPlanner = None
+sys.path.append(str((Path(__file__).parent / "ros_msg_srv_definitions").absolute()))
+from grasping_benchmarks_ros.srv import GraspPlannerRequest
 
 
 def pos_quat_to_ros_msg(
