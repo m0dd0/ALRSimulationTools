@@ -1,3 +1,5 @@
+# !!! runnin the simulation in the devcontainer does not support rendering !!!
+
 ARG PARENT_IMAGE=nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
 FROM ${PARENT_IMAGE}  
 

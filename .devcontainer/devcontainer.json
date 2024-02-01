@@ -6,7 +6,7 @@
     "runArgs": [
         "--gpus",
         "all",
-        "--network", // do NOT set when using vnc server feature for GUI!!!
+        "--network",
         "host",
     ],
     "customizations": {
