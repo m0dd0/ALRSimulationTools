@@ -4,10 +4,13 @@ It aims to collect the most commonly used utilities in a single place.
 The notebooks provide a variety of examples for common use cases.
 
 ## Setup (and why no Devcontainern is used yet) 
-The visualization of the simulation is not easy to realise when running the simulation in a devcontainer.
+The visualization of the simulation is not easy to realize when running the simulation in a devcontainer.
 As this repo is mainly for testing and developing a graphical user interface for the simulation is quite important.
-Also this package has no big non-python dependencies. Therefore it is not necessary to use a devcontainer.
-However the only problem is that we require ros noetic to communicate with the grasp algorothms running in a container of grasping-benchmark-panda repository.
-Ros noetic does not support ubunntu 22.04 but it can be installed via conda using robostack.
+Therfore an install script is provided that installs the required dependencies in a conda environment.
+This script installs ROS noetic voa the robostack conda channel as well as the ALRSimulationFramework and this package.
 
-To install ros noeitc via conda as well as the ALRSImulationFramework as well as this package, simply run: `bash install.sh <path-to-alrs-SimulationFrameowkr> <name-of-the-conda-env-to-create>`
+`bash install.sh <path-to-alrs-SimulationFrameowkr> <name-of-the-conda-env-to-create>`
+
+## Commincation with ROS service in grasping-benchmark-panda
+To send service requests to the algorithm services in grasping-benchmark-panda repository the Message and Service definitions from the grasping-banchmark-panda ROS package need to be available.
+To avoid an additional build of the ros package the message and service definitions are copied into this repo.

@@ -12,6 +12,9 @@ conda create -n $ENVIRONMENT_NAME python=3.9 -y -q
 eval "$(conda shell.bash hook)"
 conda activate $ENVIRONMENT_NAME
 
+# Install mamba
+conda install mamba -c conda-forge -y -q
+
 ## install ros
 conda config --env --add channels conda-forge
 conda config --env --add channels robostack-staging
