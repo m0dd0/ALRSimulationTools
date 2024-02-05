@@ -1,5 +1,6 @@
 from typing import List, Tuple, Dict
 import logging
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -7,6 +8,23 @@ from alr_sim.sims.SimFactory import SimRepository
 from alr_sim.sims.universal_sim.PrimitiveObjects import Box
 from alr_sim.core import Scene, RobotBase
 from alr_sim.sims.mj_beta import MjCamera
+
+from alr_tools.typing_utils import NpArray
+
+
+@dataclass
+class CameraData:
+    rgb_img: NpArray["H,W,3", np.uint8]
+    depth_img: NpArray["H,W", np.float32]
+    seg_img: NpArray["H,W", np.int64]
+    seg_img_all: NpArray["H,W", np.int32]
+    point_cloud_points: NpArray["N,3", np.float64]
+    point_cloud_colors: NpArray["N,3", np.float64]
+    point_cloud_seg_points: NpArray["M,3", np.float64]
+    point_cloud_seg_colors: NpArray["M,3", np.float64]
+    cam_pos: NpArray["3", np.float64]
+    cam_quat: NpArray["4", np.float64]
+    cam_intrinsics: NpArray["3, 3", np.float64]
 
 
 def reset_scene(factory_string: str, scene: Scene, agent):
@@ -55,7 +73,7 @@ def record_camera_data(
     render_mode: Scene.RenderMode = Scene.RenderMode.BLIND,
     wait_time: float = 0.1,
     move_duration: float = 4,
-) -> Tuple[Dict[str, np.array], Scene, RobotBase]:
+) -> Tuple[CameraData, Scene, RobotBase]:
     """
     Create a scene with a camera and returns a bunch of data captured by the camera.
 
@@ -74,19 +92,7 @@ def record_camera_data(
         move_duration (float, optional): duration of the robot movement. Defaults to 4.
 
     Returns:
-        Tuple[Dict[str, np.array], Scene, RobotBase]:
-            dictionary containing the camera data. Keys are:
-            - rgb_img: rgb image (HxBx3)
-            - depth_img: depth image (HxB)
-            - seg_img: segmentation image (HxB)
-            - seg_img_all: segmentation image with all objects (HxB)
-            - point_cloud_points: point cloud (Nx3)
-            - point_cloud_colors: point cloud colors (Nx3)
-            - point_cloud_seg_points: point cloud of the segmented object (Mx3)
-            - point_cloud_seg_colors: point cloud colors of the segmented object (Mx3)
-            - cam_pos: camera position (3)
-            - cam_quat: camera quaternion (4)
-            - cam_intrinsics: camera intrinsics (3x3)
+
     """
     if object_list is None:
         box1 = Box(
@@ -129,7 +135,7 @@ def record_camera_data(
     target_obj_id = scene.get_obj_seg_id(obj_name=target_obj_name)
     seg_img_orig = cam.get_segmentation(depth=False)
 
-    seg_img = np.where(seg_img_orig == target_obj_id, 1, 0)
+    seg_img = np.where(seg_img_orig == target_obj_id, True, False)
 
     point_cloud_seg_points, point_cloud_seg_colors = cam.calc_point_cloud_from_images(
         rgb_img, np.where(depth_img * seg_img == 0, np.nan, depth_img)
@@ -141,19 +147,19 @@ def record_camera_data(
 
     # save data
     return (
-        {
-            "rgb_img": rgb_img,
-            "depth_img": depth_img,
-            "seg_img": seg_img,
-            "seg_img_all": seg_img_orig,
-            "point_cloud_points": point_cloud_points,
-            "point_cloud_colors": point_cloud_colors,
-            "point_cloud_seg_points": point_cloud_seg_points,
-            "point_cloud_seg_colors": point_cloud_seg_colors,
-            "cam_pos": cam_pos,
-            "cam_quat": cam_quat,
-            "cam_intrinsics": cam_intrinsics,
-        },
+        CameraData(
+            rgb_img=rgb_img,
+            depth_img=depth_img,
+            seg_img=seg_img,
+            seg_img_all=seg_img_orig,
+            point_cloud_points=point_cloud_points,
+            point_cloud_colors=point_cloud_colors,
+            point_cloud_seg_points=point_cloud_seg_points,
+            point_cloud_seg_colors=point_cloud_seg_colors,
+            cam_pos=cam_pos,
+            cam_quat=cam_quat,
+            cam_intrinsics=cam_intrinsics,
+        ),
         scene,
         agent,
     )
