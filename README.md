@@ -13,4 +13,4 @@ This script installs ROS noetic voa the robostack conda channel as well as the A
 
 ## Commincation with ROS service in grasping-benchmark-panda
 To send service requests to the algorithm services in grasping-benchmark-panda repository the Message and Service definitions from the grasping-banchmark-panda ROS package need to be available.
-To avoid an additional build of the ros package the message and service definitions are copied into this repo.
+To avoid an additional build of the ros package the message and service definitions have been copied into this repo.

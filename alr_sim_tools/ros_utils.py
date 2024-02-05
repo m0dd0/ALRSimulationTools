@@ -1,4 +1,4 @@
-from typing import Optional, List, Tuple, Any
+from typing import List, Tuple, Any
 from pathlib import Path
 import sys
 
