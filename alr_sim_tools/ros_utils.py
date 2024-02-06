@@ -66,10 +66,10 @@ def create_grasp_planner_request(
 
     planner_req = GraspPlannerRequest()
 
-    header = Header()
-    header.stamp = rospy.Time.now()
-    header.frame_id = "rgbd_cam"
-    planner_req.header = header
+    # TODO add headers to the messages
+    # header = Header()
+    # header.stamp = rospy.Time.now()
+    # header.frame_id = "rgbd_cam"
 
     planner_req.color_image = ros_numpy.msgify(Image, rgb_img, "rgb8")
 
@@ -92,13 +92,9 @@ def create_grasp_planner_request(
     )
 
     view_point = np.eye(4)
-    view_point[:3, 3] = Rotation.from_quat(cam_quat[1, 2, 3, 0]).as_matrix()
-    view_point[:3, :3] = cam_pos
+    view_point[:3, :3] = Rotation.from_quat(cam_quat[[1, 2, 3, 0]]).as_matrix()
+    view_point[:3, 3] = cam_pos
     planner_req.view_point = ros_numpy.msgify(PoseStamped, view_point)
-
-    planner_req.view_point = ros_numpy.msgify(
-        PoseStamped, Rotation.from_quat(cam_quat[1, 2, 3, 0]).as_matrix()
-    )
 
     planner_req.n_of_candidates = num_of_candidates
 
