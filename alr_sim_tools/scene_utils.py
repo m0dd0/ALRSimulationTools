@@ -9,7 +9,7 @@ from alr_sim.sims.universal_sim.PrimitiveObjects import Box
 from alr_sim.core import Scene, RobotBase
 from alr_sim.sims.mj_beta import MjCamera
 
-from alr_tools.typing_utils import NpArray
+from alr_sim_tools.typing_utils import NpArray
 
 
 @dataclass
