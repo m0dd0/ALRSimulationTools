@@ -492,4 +492,4 @@ def beam_to_near_pos_quat(
             f"No appropriate joint coordinates known for position {pos} and quaternion {quat}"
         )
 
-    agent.beam_to_cart_pos_and_quat(closest_joint_coords)
+    agent.beam_to_joint_pos(np.array(closest_joint_coords))
