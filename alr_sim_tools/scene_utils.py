@@ -3,6 +3,7 @@ import logging
 from dataclasses import dataclass
 
 import numpy as np
+from scipy.spatial.transform import Rotation
 
 from alr_sim.sims.SimFactory import SimRepository
 from alr_sim.sims.universal_sim.PrimitiveObjects import Box
@@ -418,6 +419,8 @@ def execute_grasping_sequence(
     """
     # hover_offset = np.array(hover_offset)
     hover_offset = np.array([0, 0, hover_offset])  # TODO offste along grasp axis
+    grasp_axis = Rotation.from_quat(grasp_quat[[1, 2, 3, 0]]).as_matrix()[:, 2]
+    # Rotation.from_quat(grasp_quat[[1,2,3,0]]).as_matrix()
     hover_positon = grasp_pos + hover_offset
 
     logging.info(f"Going to home position {home_pos}")
@@ -461,6 +464,15 @@ def execute_grasping_sequence(
     logging.info("Closing gripper")
     agent.close_fingers()
     agent.wait(wait_time)
+
+
+def execute_grasping_sequence_fast(
+    agent: RobotBase,
+    grasp_pos: Tuple[float, float, float],
+    grasp_quat: Tuple[float, float, float, float],
+    hover_offset: float = 0.05,
+):
+    raise NotImplementedError()
 
 
 def beam_to_near_pos_quat(
