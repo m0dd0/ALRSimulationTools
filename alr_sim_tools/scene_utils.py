@@ -207,7 +207,7 @@ def execute_grasping_sequence(
     """
     grasp_axis = Rotation.from_quat(grasp_quat[[1, 2, 3, 0]]).as_matrix()[:, 2]
     grasp_axis = grasp_axis / np.linalg.norm(grasp_axis)
-    hover_positon = np.array(grasp_pos) + grasp_axis * hover_offset
+    hover_positon = np.array(grasp_pos) - grasp_axis * hover_offset
 
     logging.info(f"Beam to hover_ position {hover_positon}")
     beam_to_pos_quat(agent, hover_positon, grasp_quat, duration=movement_time)
@@ -244,7 +244,7 @@ def beam_to_pos_quat(
     agent: RobotBase,
     pos: Tuple[float, float, float],
     quat: Tuple[float, float, float, float],
-    duration: float,
+    duration: float = 4,
 ):
     """
     If a joint configuration is known for the given position and quaternion, the agent beams to this joint configuration.
@@ -276,7 +276,7 @@ def beam_to_pos_quat(
     agent.gotoCartPositionAndQuat(pos, quat, duration=duration)
     joint_configuration = tuple(agent.current_j_pos)
 
-    joint_configuration_lookup.append((pos, quat, joint_configuration))
+    joint_configuration_lookup.append((tuple(pos), tuple(quat), joint_configuration))
 
     with open(JOINT_CONFIGURATION_LOOKUP_FILE, "w") as f:
-        json.dump(joint_configuration_lookup, f)
+        json.dump(joint_configuration_lookup, f, indent=4)
