@@ -24,14 +24,14 @@ This means that the table top is at z=-0.02m in the world coordinate system.
 This might be relevant when placing objects or moving the robot to a certain position.
 
 Also note that the position of the gripper refers to the center point of the gripper fingers.
-The meaning of "center of the gripper fingers" is visualized in the second image.
+The meaning of "center of the gripper fingers" is visualized in the second image as the blue point in the middle of the gripper fingers (not the coordinate system origin of the gripper).
 
 Another caveat refers to the dimensions of boxes. 
 The side length of a box is actually two times the value provided in the `size` argument.
 The position of the box refers to its center point.
 
 ![coordinate systems](assets/coordinate_systems.png)
-
+![alt text](image.png)
 
 ## Gripper Dimensions
 Sometimes the exact dimensions of the gripper are important.
