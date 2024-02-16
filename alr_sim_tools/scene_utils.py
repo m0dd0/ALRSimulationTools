@@ -74,7 +74,7 @@ def record_camera_data(
     cam_quat: Tuple[float, float, float, float] = (-0.70710678, 0, 0, 0.70710678),
     cam_height: int = 480,
     cam_width: int = 640,
-    robot_pos: Tuple[float, float, float] = (0.0, 0.5, -0.01),
+    robot_pos: Tuple[float, float, float] = (0.0, 0.5, 0.2),
     robot_quat: Tuple[float, float, float, float] = (0, 1, 0, 0),
     object_list: List = None,
     target_obj_name: str = None,
@@ -134,8 +134,7 @@ def record_camera_data(
     scene.start()
 
     # go to start position
-    beam_to_near_pos_quat(agent, robot_pos, robot_quat, move_duration)
-
+    beam_to_pos_quat(agent, robot_pos, robot_quat, move_duration)
     agent.wait(wait_time)
 
     # get camera data
@@ -185,20 +184,17 @@ def execute_grasping_sequence(
     hover_offset: float = 0.05,
     movement_time: float = 4,
     grasp_movement_time: float = 2,
-    wait_time: float = 1,
+    wait_time: float = 0.5,
 ):
     """Execute a grasping sequence with the given agent.
     The sequence is:
-    - go to home position
-    - go to hover position
+    - beam to hover position
     - open gripper
     - go to grasp position
     - close gripper
     - go to hover position
-    - go to home position
     - go to drop position
     - open gripper
-    - close gripper
 
     Args:
         agent (RobotBase): the agent object
@@ -213,18 +209,12 @@ def execute_grasping_sequence(
         grasp_movement_time (float, optional): duration of the movement for grasping. Defaults to 2.
         wait_time (float, optional): wait time after the robot has moved. Defaults to 1.
     """
-    # hover_offset = np.array(hover_offset)
-    hover_offset = np.array([0, 0, hover_offset])  # TODO offste along grasp axis
     grasp_axis = Rotation.from_quat(grasp_quat[[1, 2, 3, 0]]).as_matrix()[:, 2]
-    # Rotation.from_quat(grasp_quat[[1,2,3,0]]).as_matrix()
-    hover_positon = grasp_pos + hover_offset
+    grasp_axis = grasp_axis / np.linalg.norm(grasp_axis)
+    hover_positon = np.array(grasp_pos) + grasp_axis * hover_offset
 
-    logging.info(f"Going to home position {home_pos}")
-    agent.gotoCartPositionAndQuat(home_pos, home_quat, duration=movement_time)
-    agent.wait(wait_time)
-
-    logging.info(f"Going to hover_ position {hover_positon}")
-    agent.gotoCartPositionAndQuat(hover_positon, grasp_quat, duration=movement_time)
+    logging.info(f"Beam to hover_ position {hover_positon}")
+    beam_to_pos_quat(agent, hover_positon, grasp_quat, duration=movement_time)
     agent.wait(wait_time)
 
     logging.info("Opening gripper")
@@ -245,10 +235,6 @@ def execute_grasping_sequence(
     )
     agent.wait(wait_time)
 
-    logging.info(f"Going to home position {home_pos}")
-    agent.gotoCartPositionAndQuat(home_pos, home_quat, duration=movement_time)
-    agent.wait(wait_time)
-
     logging.info(f"Going to drop position {drop_pos}")
     agent.gotoCartPositionAndQuat(drop_pos, drop_quat, duration=movement_time)
     agent.wait(wait_time)
@@ -257,12 +243,8 @@ def execute_grasping_sequence(
     agent.open_fingers()
     agent.wait(wait_time)
 
-    logging.info("Closing gripper")
-    agent.close_fingers()
-    agent.wait(wait_time)
 
-
-def beam_to_near_pos_quat(
+def beam_to_pos_quat(
     agent: RobotBase,
     pos: Tuple[float, float, float],
     quat: Tuple[float, float, float, float],
@@ -288,7 +270,7 @@ def beam_to_near_pos_quat(
         saved_joint_configuration,
     ) in joint_configuration_lookup:
         if np.allclose(saved_pos, pos) and np.allclose(saved_quat, quat):
-            agent.beam_to_joint_configuration(saved_joint_configuration)
+            agent.beam_to_joint_pos(saved_joint_configuration)
             return
 
     logging.warning(
