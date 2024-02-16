@@ -5,9 +5,11 @@ import os
 import numpy as np
 import yaml
 import trimesh
+from scipy.spatial.transform import Rotation
 
-from alr_sim.utils.geometric_transformation import posRotMat2TFMat, quat2mat
 from alr_sim.sims.mj_beta.mj_utils.mj_scene_object import YCBMujocoObject
+
+from alr_sim_tools.scene_utils import TABLE_TOP_Z_OFFSET
 
 
 class YCBLoader:
@@ -55,23 +57,10 @@ class YCBLoader:
 
         return obj_folder / info_dict["original_file"]
 
-    def get_obj_bounds(self, obj_id: str) -> Tuple[List[float], List[float]]:
-        """Get the bounds of the object
-
-        Args:
-            obj_id (str): Object ID, same as folder name (e.g. "003_cracker_box")
-
-        Returns:
-            Tuple[List[float], List[float]]: [[x_max, y_max, z_max], [x_min, y_min, z_min]]
-        """
-        obj_mesh = trimesh.load(self.get_orig_file_path(obj_id), force="mesh")
-        bounds = obj_mesh.bounds
-        return bounds
-
-    def get_obj_rotated_bounds(
-        self, obj_id: str, obj_quat: List[float]
+    def get_obj_bounds(
+        self, obj_id: str, obj_quat: List[float] = None
     ) -> Tuple[List[float], List[float]]:
-        """Get the bounds of the object, rotated by the given quaternion
+        """Get the bounds of the object. Optionally rotated by the given quaternion.
 
         Args:
             obj_id (str): Object ID, same as folder name (e.g. "003_cracker_box")
@@ -80,10 +69,15 @@ class YCBLoader:
         Returns:
             Tuple[List[float], List[float]]: [[x_max, y_max, z_max], [x_min, y_min, z_min]]
         """
-        tf_mat = posRotMat2TFMat(np.zeros(3), quat2mat(obj_quat))
-
         obj_mesh = trimesh.load(self.get_orig_file_path(obj_id), force="mesh")
-        obj_mesh.apply_transform(tf_mat)
+
+        if obj_quat is not None:
+            obj_quat = np.array(obj_quat)
+            transformation_matrix = np.eye(4)
+            transformation_matrix[:3, :3] = Rotation.from_quat(
+                obj_quat[[1, 2, 3, 0]]
+            ).as_matrix()
+            obj_mesh.apply_transform(transformation_matrix)
 
         bounds = obj_mesh.bounds
         return bounds
@@ -95,6 +89,7 @@ class YCBLoader:
         obj_id: str = None,
         name: str = None,
         factory_string: str = None,
+        grounded: bool = False,
     ) -> YCBMujocoObject:
         """Get the object, based on the factory string and the object id.
         Also applies the given position and quaternion.
@@ -105,11 +100,19 @@ class YCBLoader:
             obj_id (str): Object ID, same as folder name (e.g. "003_cracker_box")
             name (str): Name of the object in the scene
             factory_string (str): The factory referencing the used simulation environment. If None, self.factory_string is used.
+            grounded (bool): If the z-coordinate of the object position should be adapted so that the object is grounded.
 
         Returns:
             YCBMujocoObject: The object
         """
         _factory_string = factory_string or self.factory_string
+
+        pos = np.array(pos)
+        if grounded:
+            bounds = self.get_obj_bounds(obj_id, quat)
+            height = bounds[1][2] - bounds[0][2]
+            # it seems like the origin of ycb objects is at the top of the object (and not the center)
+            pos[2] = height + TABLE_TOP_Z_OFFSET
 
         if _factory_string == "mj_beta":
             return YCBMujocoObject(
