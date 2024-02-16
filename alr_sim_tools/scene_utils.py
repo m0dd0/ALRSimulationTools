@@ -220,6 +220,8 @@ POS_QUAT_2_JOINT_COORDS = {
     ),
 }
 
+FINGER_TIP_Z_OFFSET = 0.127
+
 
 @dataclass
 class CameraData:
