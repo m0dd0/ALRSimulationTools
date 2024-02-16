@@ -177,8 +177,6 @@ def execute_grasping_sequence(
     agent: RobotBase,
     grasp_pos: Tuple[float, float, float],
     grasp_quat: Tuple[float, float, float, float],
-    home_pos: Tuple[float, float, float] = (0.5, 0, 0.5),
-    home_quat: Tuple[float, float, float, float] = (0, 1, 0, 0),
     drop_pos: Tuple[float, float, float] = (0, 0.5, 0.5),
     drop_quat: Tuple[float, float, float, float] = (0, 1, 0, 0),
     hover_offset: float = 0.05,
@@ -200,8 +198,6 @@ def execute_grasping_sequence(
         agent (RobotBase): the agent object
         grasp_pos (Tuple[float])): position of the grasp
         grasp_quat (Tuple[float])): quaternion of the grasp
-        home_pos (Tuple[float]), optional): position of the home position. Defaults to (0.5, 0, 0.5).
-        home_quat (Tuple[float]), optional): quaternion of the home position. Defaults to (0, 1, 0, 0).
         drop_pos (Tuple[float]), optional): position of the drop position. Defaults to (0, 0.5, 0.5).
         drop_quat (Tuple[float]), optional): quaternion of the drop position. Defaults to (0, 1, 0, 0).
         hover_offset (float, optional): offset along the grasp axis. Defaults to 0.05.
