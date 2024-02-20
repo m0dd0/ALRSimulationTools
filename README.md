@@ -38,3 +38,10 @@ Sometimes the exact dimensions of the gripper are important.
 Below are the most important technical drawings taken from the [Franka Emika Panda gripper manual](https://download.franka.de/documents/220010_Product%20Manual_Franka%20Hand_1.2_EN.pdf).
 
 ![gripper width](assets/gripper_width.png)
+
+## Speeding Up Testing with saved Simulation States
+The main bottleneck when it comes to testing the wrapped grasping algorithms is the time it takes the simulation to capture the data and execute the grasp.
+While the process of capturing the data can be elimintad by using prerecorded data (e.g. pickled or custom serialized data) the execution of the grasp still has to be done each time to determine the success of the grasp.
+The usage of serialized simulation data comes with quite some overhead implementation wise (which format to use? how to (de)serialize?) and at the same time the capturing of the data has been speed up by beaming to the home position.
+Therfore for now it is not planned to use serialized simulation data as the main botlleneck is the execution of the grasp.
+
