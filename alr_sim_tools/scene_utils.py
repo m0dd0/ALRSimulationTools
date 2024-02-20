@@ -1,12 +1,38 @@
-from typing import List, Tuple, Dict
+from typing import List, Tuple
 import logging
+from dataclasses import dataclass
+from pathlib import Path
+import json
 
 import numpy as np
+from scipy.spatial.transform import Rotation
 
 from alr_sim.sims.SimFactory import SimRepository
 from alr_sim.sims.universal_sim.PrimitiveObjects import Box
 from alr_sim.core import Scene, RobotBase
 from alr_sim.sims.mj_beta import MjCamera
+
+from alr_sim_tools.typing_utils import NpArray
+
+TABLE_TOP_Z_OFFSET = -0.02
+JOINT_CONFIGURATION_LOOKUP_FILE = (
+    Path(__file__).parent / "joint_configuration_lookup.json"
+)
+
+
+@dataclass
+class CameraData:
+    rgb_img: NpArray["H,W,3", np.uint8]
+    depth_img: NpArray["H,W", np.float32]
+    seg_img: NpArray["H,W", np.int64]
+    seg_img_all: NpArray["H,W", np.int32]
+    point_cloud_points: NpArray["N,3", np.float64]
+    point_cloud_colors: NpArray["N,3", np.float64]
+    point_cloud_seg_points: NpArray["M,3", np.float64]
+    point_cloud_seg_colors: NpArray["M,3", np.float64]
+    cam_pos: NpArray["3", np.float64]
+    cam_quat: NpArray["4", np.float64]
+    cam_intrinsics: NpArray["3, 3", np.float64]
 
 
 def reset_scene(factory_string: str, scene: Scene, agent):
@@ -44,18 +70,18 @@ def reset_scene(factory_string: str, scene: Scene, agent):
 
 def record_camera_data(
     factory_string: str = "mj_beta",
-    cam_pos: Tuple[float] = (0.5, 0.0, 1.0),
-    cam_quat: Tuple[float] = (-0.70710678, 0, 0, 0.70710678),
+    cam_pos: Tuple[float, float, float] = (0.5, 0.0, 1.0),
+    cam_quat: Tuple[float, float, float, float] = (-0.70710678, 0, 0, 0.70710678),
     cam_height: int = 480,
     cam_width: int = 640,
-    robot_pos: Tuple[float] = (0.0, 0.5, -0.01),
-    robot_quat: Tuple[float] = (0, 1, 0, 0),
+    robot_pos: Tuple[float, float, float] = (0.0, 0.5, 0.2),
+    robot_quat: Tuple[float, float, float, float] = (0, 1, 0, 0),
     object_list: List = None,
     target_obj_name: str = None,
     render_mode: Scene.RenderMode = Scene.RenderMode.BLIND,
-    wait_time: float = 0.1,
+    wait_time: float = 0.01,
     move_duration: float = 4,
-) -> Tuple[Dict[str, np.array], Scene, RobotBase]:
+) -> Tuple[CameraData, Scene, RobotBase]:
     """
     Create a scene with a camera and returns a bunch of data captured by the camera.
 
@@ -74,19 +100,7 @@ def record_camera_data(
         move_duration (float, optional): duration of the robot movement. Defaults to 4.
 
     Returns:
-        Tuple[Dict[str, np.array], Scene, RobotBase]:
-            dictionary containing the camera data. Keys are:
-            - rgb_img: rgb image (HxBx3)
-            - depth_img: depth image (HxB)
-            - seg_img: segmentation image (HxB)
-            - seg_img_all: segmentation image with all objects (HxB)
-            - point_cloud_points: point cloud (Nx3)
-            - point_cloud_colors: point cloud colors (Nx3)
-            - point_cloud_seg_points: point cloud of the segmented object (Mx3)
-            - point_cloud_seg_colors: point cloud colors of the segmented object (Mx3)
-            - cam_pos: camera position (3)
-            - cam_quat: camera quaternion (4)
-            - cam_intrinsics: camera intrinsics (3x3)
+
     """
     if object_list is None:
         box1 = Box(
@@ -120,7 +134,7 @@ def record_camera_data(
     scene.start()
 
     # go to start position
-    agent.gotoCartPositionAndQuat(robot_pos, robot_quat, duration=move_duration)
+    beam_to_pos_quat(agent, robot_pos, robot_quat, move_duration)
     agent.wait(wait_time)
 
     # get camera data
@@ -129,7 +143,7 @@ def record_camera_data(
     target_obj_id = scene.get_obj_seg_id(obj_name=target_obj_name)
     seg_img_orig = cam.get_segmentation(depth=False)
 
-    seg_img = np.where(seg_img_orig == target_obj_id, 1, 0)
+    seg_img = np.where(seg_img_orig == target_obj_id, True, False)
 
     point_cloud_seg_points, point_cloud_seg_colors = cam.calc_point_cloud_from_images(
         rgb_img, np.where(depth_img * seg_img == 0, np.nan, depth_img)
@@ -141,19 +155,19 @@ def record_camera_data(
 
     # save data
     return (
-        {
-            "rgb_img": rgb_img,
-            "depth_img": depth_img,
-            "seg_img": seg_img,
-            "seg_img_all": seg_img_orig,
-            "point_cloud_points": point_cloud_points,
-            "point_cloud_colors": point_cloud_colors,
-            "point_cloud_seg_points": point_cloud_seg_points,
-            "point_cloud_seg_colors": point_cloud_seg_colors,
-            "cam_pos": cam_pos,
-            "cam_quat": cam_quat,
-            "cam_intrinsics": cam_intrinsics,
-        },
+        CameraData(
+            rgb_img=rgb_img,
+            depth_img=depth_img,
+            seg_img=seg_img,
+            seg_img_all=seg_img_orig,
+            point_cloud_points=point_cloud_points,
+            point_cloud_colors=point_cloud_colors,
+            point_cloud_seg_points=point_cloud_seg_points,
+            point_cloud_seg_colors=point_cloud_seg_colors,
+            cam_pos=cam_pos,
+            cam_quat=cam_quat,
+            cam_intrinsics=cam_intrinsics,
+        ),
         scene,
         agent,
     )
@@ -161,53 +175,42 @@ def record_camera_data(
 
 def execute_grasping_sequence(
     agent: RobotBase,
-    grasp_pos: np.array,
-    grasp_quat: np.array,
-    home_pos: np.array = (0.5, 0, 0.5),
-    home_quat: np.array = (0, 1, 0, 0),
-    drop_pos: np.array = (0, 0.5, 0.5),
-    drop_quat: np.array = (0, 1, 0, 0),
+    grasp_pos: Tuple[float, float, float],
+    grasp_quat: Tuple[float, float, float, float],
+    drop_pos: Tuple[float, float, float] = (0, 0.5, 0.5),
+    drop_quat: Tuple[float, float, float, float] = (0, 1, 0, 0),
     hover_offset: float = 0.05,
     movement_time: float = 4,
     grasp_movement_time: float = 2,
-    wait_time: float = 1,
+    wait_time: float = 0.5,
 ):
     """Execute a grasping sequence with the given agent.
     The sequence is:
-    - go to home position
-    - go to hover position
+    - beam to hover position
     - open gripper
     - go to grasp position
     - close gripper
     - go to hover position
-    - go to home position
     - go to drop position
     - open gripper
-    - close gripper
 
     Args:
         agent (RobotBase): the agent object
-        grasp_pos (np.array): position of the grasp
-        grasp_quat (np.array): quaternion of the grasp
-        home_pos (np.array, optional): position of the home position. Defaults to (0.5, 0, 0.5).
-        home_quat (np.array, optional): quaternion of the home position. Defaults to (0, 1, 0, 0).
-        drop_pos (np.array, optional): position of the drop position. Defaults to (0, 0.5, 0.5).
-        drop_quat (np.array, optional): quaternion of the drop position. Defaults to (0, 1, 0, 0).
+        grasp_pos (Tuple[float])): position of the grasp
+        grasp_quat (Tuple[float])): quaternion of the grasp
+        drop_pos (Tuple[float]), optional): position of the drop position. Defaults to (0, 0.5, 0.5).
+        drop_quat (Tuple[float]), optional): quaternion of the drop position. Defaults to (0, 1, 0, 0).
         hover_offset (float, optional): offset along the grasp axis. Defaults to 0.05.
         movement_time (float, optional): duration of the movement. Defaults to 4.
         grasp_movement_time (float, optional): duration of the movement for grasping. Defaults to 2.
         wait_time (float, optional): wait time after the robot has moved. Defaults to 1.
     """
-    # hover_offset = np.array(hover_offset)
-    hover_offset = np.array([0, 0, hover_offset])  # TODO offste along grasp axis
-    hover_positon = grasp_pos + hover_offset
+    grasp_axis = Rotation.from_quat(grasp_quat[[1, 2, 3, 0]]).as_matrix()[:, 2]
+    grasp_axis = grasp_axis / np.linalg.norm(grasp_axis)
+    hover_positon = np.array(grasp_pos) - grasp_axis * hover_offset
 
-    logging.info(f"Going to home position {home_pos}")
-    agent.gotoCartPositionAndQuat(home_pos, home_quat, duration=movement_time)
-    agent.wait(wait_time)
-
-    logging.info(f"Going to hover_ position {hover_positon}")
-    agent.gotoCartPositionAndQuat(hover_positon, grasp_quat, duration=movement_time)
+    logging.info(f"Beam to hover_ position {hover_positon}")
+    beam_to_pos_quat(agent, hover_positon, grasp_quat, duration=movement_time)
     agent.wait(wait_time)
 
     logging.info("Opening gripper")
@@ -228,10 +231,6 @@ def execute_grasping_sequence(
     )
     agent.wait(wait_time)
 
-    logging.info(f"Going to home position {home_pos}")
-    agent.gotoCartPositionAndQuat(home_pos, home_quat, duration=movement_time)
-    agent.wait(wait_time)
-
     logging.info(f"Going to drop position {drop_pos}")
     agent.gotoCartPositionAndQuat(drop_pos, drop_quat, duration=movement_time)
     agent.wait(wait_time)
@@ -240,6 +239,51 @@ def execute_grasping_sequence(
     agent.open_fingers()
     agent.wait(wait_time)
 
-    logging.info("Closing gripper")
-    agent.close_fingers()
-    agent.wait(wait_time)
+
+def beam_to_pos_quat(
+    agent: RobotBase,
+    pos: Tuple[float, float, float],
+    quat: Tuple[float, float, float, float],
+    duration: float = 4,
+):
+    """
+    If a joint configuration is known for the given position and quaternion, the agent beams to this joint configuration.
+    Otherwise the agent is moved normally to the given position and quaternion and the joint configuration is saved for future use.
+
+    Args:
+        agent (RobotBase): the agent object
+        pos (Tuple[float]): position of the desired position
+        quat (Tuple[float]): quaternion of the desired orientation
+        durarion (float): duration of the movement in case the joint configuration is not known
+    """
+
+    with open(JOINT_CONFIGURATION_LOOKUP_FILE, "r") as f:
+        joint_configuration_lookup = json.load(f)
+
+    if len(joint_configuration_lookup) > 1000:
+        logging.warning(
+            "Joint configuration lookup file is getting large. Consider cleaning it up."
+        )
+
+    for (
+        saved_pos,
+        saved_quat,
+        saved_joint_configuration,
+    ) in joint_configuration_lookup:
+        if np.allclose(saved_pos, pos, atol=0.001) and np.allclose(
+            saved_quat, quat, atol=0.0001
+        ):
+            agent.beam_to_joint_pos(saved_joint_configuration)
+            return
+
+    logging.warning(
+        f"Joint configuration for position {pos} and quaternion {quat} not found. Moving to position and saving joint configuration."
+    )
+
+    agent.gotoCartPositionAndQuat(pos, quat, duration=duration)
+    joint_configuration = tuple(agent.current_j_pos)
+
+    joint_configuration_lookup.append((tuple(pos), tuple(quat), joint_configuration))
+
+    with open(JOINT_CONFIGURATION_LOOKUP_FILE, "w") as f:
+        json.dump(joint_configuration_lookup, f, indent=4)
