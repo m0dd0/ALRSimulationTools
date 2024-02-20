@@ -260,12 +260,19 @@ def beam_to_pos_quat(
     with open(JOINT_CONFIGURATION_LOOKUP_FILE, "r") as f:
         joint_configuration_lookup = json.load(f)
 
+    if len(joint_configuration_lookup) > 1000:
+        logging.warning(
+            "Joint configuration lookup file is getting large. Consider cleaning it up."
+        )
+
     for (
         saved_pos,
         saved_quat,
         saved_joint_configuration,
     ) in joint_configuration_lookup:
-        if np.allclose(saved_pos, pos) and np.allclose(saved_quat, quat):
+        if np.allclose(saved_pos, pos, atol=0.001) and np.allclose(
+            saved_quat, quat, atol=0.0001
+        ):
             agent.beam_to_joint_pos(saved_joint_configuration)
             return
 
