@@ -3,17 +3,18 @@ This Repo contains a set of utilities that allow for quick and easy test setups 
 It aims to collect the most commonly used utilities in a single place.
 The notebooks provide a variety of examples for common use cases.
 
-## Setup (and why no Devcontainern is used yet) 
+## Installation/Setup (and why no Devcontainern is used yet) 
 The visualization of the simulation is not easy to realize when running the simulation in a devcontainer.
 As this repo is mainly for testing and developing a graphical user interface for the simulation is quite important.
-Therefore an install script is provided that installs the required dependencies in a conda environment.
-This script installs ROS noetic voa the robostack conda channel as well as the ALRSimulationFramework and this package.
+Therefore an install script is provided that installs the required dependencies in a new conda environment.
+This script installs ROS noetic voa the robostack conda channel as well as the ALRSimulationFramework and this package. 
+The script does _not_ install the old MuJoCo version for the Simulationframework. Therfore it is not necessary to download the mujoco files from the mujoco website manually.
 
 `bash install.sh <path-to-alrs-SimulationFrameowkr> <name-of-the-conda-env-to-create>`
 
 ## Communincation with ROS service in grasping-benchmark-panda
 To send service requests to the algorithm services in grasping-benchmark-panda repository the Message and Service definitions from the grasping-banchmark-panda ROS package need to be available.
-To avoid an additional build of the ros package the message and service definitions have been copied into this repo.
+To avoid an additional build of the ros package the message and service definitions have been copied into this repo. (`alr_sim_tools/ros_msg_srv_definitions`)
 
 ## Coordinate Sysemes and Dimensions
 In the beginning the coordinate systems used in the ALR simulation framework can be a bit confusing.
