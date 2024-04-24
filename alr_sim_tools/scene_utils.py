@@ -26,10 +26,10 @@ class CameraData:
     depth_img: NpArray["H,W", np.float32]
     seg_img: NpArray["H,W", np.int64]
     seg_img_all: NpArray["H,W", np.int32]
-    point_cloud_points: NpArray["N,3", np.float64]
-    point_cloud_colors: NpArray["N,3", np.float64]
-    point_cloud_seg_points: NpArray["M,3", np.float64]
-    point_cloud_seg_colors: NpArray["M,3", np.float64]
+    pointcloud_points: NpArray["N,3", np.float64]
+    pointcloud_colors: NpArray["N,3", np.float64]  # in 0-1 range
+    pointcloud_seg_points: NpArray["M,3", np.float64]
+    pointcloud_seg_colors: NpArray["M,3", np.float64]
     cam_pos: NpArray["3", np.float64]
     cam_quat: NpArray["4", np.float64]
     cam_intrinsics: NpArray["3, 3", np.float64]
@@ -69,6 +69,7 @@ def reset_scene(factory_string: str, scene: Scene, agent):
 
 
 def record_camera_data(
+    # TODO use own typing system
     factory_string: str = "mj_beta",
     cam_pos: Tuple[float, float, float] = (0.5, 0.0, 1.0),
     cam_quat: Tuple[float, float, float, float] = (-0.70710678, 0, 0, 0.70710678),
@@ -139,13 +140,13 @@ def record_camera_data(
 
     # get camera data
     rgb_img, depth_img = cam.get_image()
-    point_cloud_points, point_cloud_colors = cam.calc_point_cloud()
+    pointcloud_points, pointcloud_colors = cam.calc_point_cloud()
     target_obj_id = scene.get_obj_seg_id(obj_name=target_obj_name)
     seg_img_orig = cam.get_segmentation(depth=False)
 
     seg_img = np.where(seg_img_orig == target_obj_id, True, False)
 
-    point_cloud_seg_points, point_cloud_seg_colors = cam.calc_point_cloud_from_images(
+    pointcloud_seg_points, pointcloud_seg_colors = cam.calc_point_cloud_from_images(
         rgb_img, np.where(depth_img * seg_img == 0, np.nan, depth_img)
     )
 
@@ -160,10 +161,10 @@ def record_camera_data(
             depth_img=depth_img,
             seg_img=seg_img,
             seg_img_all=seg_img_orig,
-            point_cloud_points=point_cloud_points,
-            point_cloud_colors=point_cloud_colors,
-            point_cloud_seg_points=point_cloud_seg_points,
-            point_cloud_seg_colors=point_cloud_seg_colors,
+            pointcloud_points=pointcloud_points,
+            pointcloud_colors=pointcloud_colors,
+            pointcloud_seg_points=pointcloud_seg_points,
+            pointcloud_seg_colors=pointcloud_seg_colors,
             cam_pos=cam_pos,
             cam_quat=cam_quat,
             cam_intrinsics=cam_intrinsics,
