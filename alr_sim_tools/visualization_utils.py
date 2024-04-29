@@ -35,7 +35,8 @@ def plot_pointcloud(
         # Create an Open3D point cloud object
         pointcloud = o3d.geometry.PointCloud()
         pointcloud.points = o3d.utility.Vector3dVector(pointcloud_points)
-        pointcloud.colors = o3d.utility.Vector3dVector(pointcloud_colors)
+        if pointcloud_colors is not None:
+            pointcloud.colors = o3d.utility.Vector3dVector(pointcloud_colors)
 
         # Create a visualizer object
         vis = o3d.visualization.Visualizer()

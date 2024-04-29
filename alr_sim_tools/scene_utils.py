@@ -28,8 +28,8 @@ class CameraData:
     seg_img_all: NpArray["H,W", np.int32]
     pointcloud_points: NpArray["N,3", np.float64]
     pointcloud_colors: NpArray["N,3", np.float64]  # in 0-1 range
-    pointcloud_seg_points: NpArray["M,3", np.float64]
-    pointcloud_seg_colors: NpArray["M,3", np.float64]
+    pointcloud_segmented_points: NpArray["M,3", np.float64]
+    pointcloud_segmented_colors: NpArray["M,3", np.float64]
     cam_pos: NpArray["3", np.float64]
     cam_quat: NpArray["4", np.float64]
     cam_intrinsics: NpArray["3, 3", np.float64]
@@ -163,8 +163,8 @@ def record_camera_data(
             seg_img_all=seg_img_orig,
             pointcloud_points=pointcloud_points,
             pointcloud_colors=pointcloud_colors,
-            pointcloud_seg_points=pointcloud_seg_points,
-            pointcloud_seg_colors=pointcloud_seg_colors,
+            pointcloud_segmented_points=pointcloud_seg_points,
+            pointcloud_segmented_colors=pointcloud_seg_colors,
             cam_pos=cam_pos,
             cam_quat=cam_quat,
             cam_intrinsics=cam_intrinsics,
