@@ -4,3 +4,4 @@ MUJOCO_LOG.TXT
 .devcontainer/data/*
 build/
 .vscode/
+data/*

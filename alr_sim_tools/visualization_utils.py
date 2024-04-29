@@ -1,8 +1,21 @@
+from alr_sim_tools.typing_utils import NpArray
+
 from matplotlib import pyplot as plt
 import open3d as o3d
 
 
-def plot_pointcloud(pointcloud_points, pointcloud_colors=None, method="matplotlib"):
+def plot_pointcloud(
+    pointcloud_points: NpArray["N,3", float],
+    pointcloud_colors: NpArray["N,3", float] = None,
+    method: str = "matplotlib",
+):
+    """Plot a point cloud.
+
+    Args:
+        pointcloud_points (NpArray["N,3", float]): Point cloud coordinates.
+        pointcloud_colors (NpArray["N,3", float], optional): Point cloud colors. Defaults to None.
+        method (str, optional): Method to use for plotting. Defaults to "matplotlib".
+    """
     if method == "matplotlib":
         # Plot point cloud
         fig = plt.figure()

@@ -18,6 +18,7 @@ setuptools.setup(
         "trimesh",
         "scipy",
         "ros_numpy @ git+https://github.com/m0dd0/ros_numpy@master",  # the original version is outdated and does not support new version of numpy
+        "open3d",
     ],
     extras_require={"dev": ["black", "pylint", "jupyter", "ipykernel", "tqdm"]},
     include_package_data=True,
