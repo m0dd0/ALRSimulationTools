@@ -164,10 +164,10 @@ def record_camera_data(
 
 def execute_grasping_sequence(
     agent: RobotBase,
-    grasp_pos: Tuple[float, float, float],
-    grasp_quat: Tuple[float, float, float, float],
-    drop_pos: Tuple[float, float, float] = (0, 0.5, 0.5),
-    drop_quat: Tuple[float, float, float, float] = (0, 1, 0, 0),
+    grasp_position: Tuple[float, float, float],
+    grasp_quaternion: Tuple[float, float, float, float],
+    drop_position: Tuple[float, float, float] = (0, 0.5, 0.5),
+    drop_quaternion: Tuple[float, float, float, float] = (0, 1, 0, 0),
     hover_offset: float = 0.05,
     movement_time: float = 4,
     grasp_movement_time: float = 2,
@@ -185,29 +185,31 @@ def execute_grasping_sequence(
 
     Args:
         agent (RobotBase): the agent object
-        grasp_pos (Tuple[float])): position of the grasp
-        grasp_quat (Tuple[float])): quaternion of the grasp
-        drop_pos (Tuple[float]), optional): position of the drop position. Defaults to (0, 0.5, 0.5).
-        drop_quat (Tuple[float]), optional): quaternion of the drop position. Defaults to (0, 1, 0, 0).
+        grasp_position (Tuple[float])): position of the grasp
+        grasp_quaternion (Tuple[float])): quaternion of the grasp
+        drop_position (Tuple[float]), optional): position of the drop position. Defaults to (0, 0.5, 0.5).
+        drop_quaternion (Tuple[float]), optional): quaternion of the drop position. Defaults to (0, 1, 0, 0).
         hover_offset (float, optional): offset along the grasp axis. Defaults to 0.05.
         movement_time (float, optional): duration of the movement. Defaults to 4.
         grasp_movement_time (float, optional): duration of the movement for grasping. Defaults to 2.
         wait_time (float, optional): wait time after the robot has moved. Defaults to 1.
     """
-    grasp_axis = Rotation.from_quat(grasp_quat[[1, 2, 3, 0]]).as_matrix()[:, 2]
+    grasp_axis = Rotation.from_quat(grasp_quaternion[[1, 2, 3, 0]]).as_matrix()[:, 2]
     grasp_axis = grasp_axis / np.linalg.norm(grasp_axis)
-    hover_positon = np.array(grasp_pos) - grasp_axis * hover_offset
+    hover_positon = np.array(grasp_position) - grasp_axis * hover_offset
 
     logging.info(f"Beam to hover_ position {hover_positon}")
-    beam_to_pos_quat(agent, hover_positon, grasp_quat, duration=movement_time)
+    beam_to_pos_quat(agent, hover_positon, grasp_quaternion, duration=movement_time)
     agent.wait(wait_time)
 
     logging.info("Opening gripper")
     agent.open_fingers()
     agent.wait(wait_time)
 
-    logging.info(f"Going to grasp position {grasp_pos}")
-    agent.gotoCartPositionAndQuat(grasp_pos, grasp_quat, duration=grasp_movement_time)
+    logging.info(f"Going to grasp position {grasp_position}")
+    agent.gotoCartPositionAndQuat(
+        grasp_position, grasp_quaternion, duration=grasp_movement_time
+    )
     agent.wait(wait_time)
 
     logging.info("Closing gripper")
@@ -216,12 +218,14 @@ def execute_grasping_sequence(
 
     logging.info(f"Going to hover position {hover_positon}")
     agent.gotoCartPositionAndQuat(
-        hover_positon, grasp_quat, duration=grasp_movement_time
+        hover_positon, grasp_quaternion, duration=grasp_movement_time
     )
     agent.wait(wait_time)
 
-    logging.info(f"Going to drop position {drop_pos}")
-    agent.gotoCartPositionAndQuat(drop_pos, drop_quat, duration=movement_time)
+    logging.info(f"Going to drop position {drop_position}")
+    agent.gotoCartPositionAndQuat(
+        drop_position, drop_quaternion, duration=movement_time
+    )
     agent.wait(wait_time)
 
     logging.info("Opening gripper")

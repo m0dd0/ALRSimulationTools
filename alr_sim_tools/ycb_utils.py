@@ -26,7 +26,7 @@ class YCBLoader:
         self.ycb_base_folder = ycb_base_folder
         self.factory_string = factory_string
 
-    def get_obj_folder(self, obj_id: str) -> Path:
+    def get_obj_folder(self, object_id: str) -> Path:
         """Get the folder of the object, based on obj_id and ycb_base_folder.
 
         Args:
@@ -35,9 +35,9 @@ class YCBLoader:
         Returns:
             str: Path to the object folder
         """
-        return self.ycb_base_folder / obj_id
+        return self.ycb_base_folder / object_id
 
-    def get_orig_file_path(self, obj_id: str) -> Path:
+    def get_orig_file_path(self, object_id: str) -> Path:
         """Get the path to the original file of the object. Used for visualization, without any decompositions.
 
         Args:
@@ -46,7 +46,7 @@ class YCBLoader:
         Returns:
             Path: Path to the original file
         """
-        obj_folder = self.get_obj_folder(obj_id)
+        obj_folder = self.get_obj_folder(object_id)
         info_file = obj_folder / "info.yml"
 
         if not os.path.isfile(info_file):
@@ -58,7 +58,7 @@ class YCBLoader:
         return obj_folder / info_dict["original_file"]
 
     def get_obj_bounds(
-        self, obj_id: str, obj_quat: List[float] = None
+        self, obj_id: str, object_quaternion: List[float] = None
     ) -> Tuple[List[float], List[float]]:
         """Get the bounds of the object. Optionally rotated by the given quaternion.
 
@@ -71,11 +71,11 @@ class YCBLoader:
         """
         obj_mesh = trimesh.load(self.get_orig_file_path(obj_id), force="mesh")
 
-        if obj_quat is not None:
-            obj_quat = np.array(obj_quat)
+        if object_quaternion is not None:
+            object_quaternion = np.array(object_quaternion)
             transformation_matrix = np.eye(4)
             transformation_matrix[:3, :3] = Rotation.from_quat(
-                obj_quat[[1, 2, 3, 0]]
+                object_quaternion[[1, 2, 3, 0]]
             ).as_matrix()
             obj_mesh.apply_transform(transformation_matrix)
 
@@ -86,7 +86,7 @@ class YCBLoader:
         self,
         pos,
         quat,
-        obj_id: str = None,
+        object_id: str = None,
         name: str = None,
         factory_string: str = None,
         grounded: bool = False,
@@ -109,7 +109,7 @@ class YCBLoader:
 
         pos = np.array(pos)
         if grounded:
-            bounds = self.get_obj_bounds(obj_id, quat)
+            bounds = self.get_obj_bounds(object_id, quat)
             height = bounds[1][2] - bounds[0][2]
             # it seems like the origin of ycb objects is at the top of the object (and not the center)
             pos[2] = height + TABLE_TOP_Z_OFFSET
@@ -117,7 +117,7 @@ class YCBLoader:
         if _factory_string == "mj_beta":
             return YCBMujocoObject(
                 self.ycb_base_folder,
-                obj_id,
+                object_id,
                 name,
                 pos,
                 quat,

@@ -14,6 +14,7 @@ sys.path.append(str((Path(__file__).parent / "ros_msg_srv_definitions").absolute
 from grasping_benchmarks_ros.srv import GraspPlannerRequest
 
 from alr_sim_tools.typing_utils import NpArray
+from alr_sim_tools.data_utils import CameraData
 
 
 def to_record_array(arr: NpArray, dtype: List[Tuple[str, Any]]) -> NpArray:
@@ -47,19 +48,33 @@ def to_record_array(arr: NpArray, dtype: List[Tuple[str, Any]]) -> NpArray:
 
 
 def create_grasp_planner_request(
-    rgb_image: NpArray["H,W,3", float],
-    depth_image: NpArray["H,W", float],
-    segmentation_image: NpArray["H,W", int],
-    pointcloud_points: NpArray["N,3", float],
-    pointcloud_colors: NpArray["N,3", int],
-    camera_position: NpArray["3", float],
-    camera_quaternion: NpArray["4", float],
-    camera_intrinsics: NpArray["3, 3", float],
-    camera_height: float,
-    camera_width: float,
+    camera_data: CameraData,
     number_of_candidates: int = 1,
 ) -> GraspPlannerRequest:
-    """Create a GraspPlannerRequest ROS message from all necessary data"""
+    """Create a GraspPlannerRequest message from a CameraData object.
+
+    Args:
+        camera_data: Camera data
+        number_of_candidates: Number of grasp candidates to generate
+
+    Returns:
+        GraspPlannerRequest message
+    """
+
+    (
+        rgb_image,
+        depth_image,
+        segmentation_image,
+        _,
+        pointcloud_points,
+        _,
+        _,
+        camera_position,
+        camera_quaternion,
+        camera_intrinsics,
+    ) = camera_data
+
+    camera_height, camera_width = rgb_image.shape[:2]
 
     assert GraspPlannerRequest is not None, "Could not import grasping_benchmarks_ros"
 
