@@ -72,13 +72,13 @@ def create_grasp_planner_request(
     # header.stamp = rospy.Time.now()
     # header.frame_id = "rgbd_cam"
 
-    planner_req.color_image = ros_numpy.msgify(Image, camera_data.rgb_image, "rgb8")
+    planner_req.rgb_image = ros_numpy.msgify(Image, camera_data.rgb_image, "rgb8")
 
     planner_req.depth_image = ros_numpy.msgify(
         Image, (camera_data.depth_image * 1000).astype("uint16"), "16UC1"
     )
 
-    planner_req.seg_image = ros_numpy.msgify(
+    planner_req.segmentation_image = ros_numpy.msgify(
         Image, camera_data.segmentation_image.astype(np.uint8), "8UC1"
     )
 
@@ -90,7 +90,7 @@ def create_grasp_planner_request(
     )
 
     # TODO rgb info is not included in the pointcloud
-    planner_req.cloud = ros_numpy.msgify(
+    planner_req.pointcloud = ros_numpy.msgify(
         PointCloud2,
         to_record_array(
             camera_data.pointcloud_points,
@@ -112,6 +112,6 @@ def create_grasp_planner_request(
     view_point[:3, 3] = camera_data.camera_position
     planner_req.view_point = ros_numpy.msgify(PoseStamped, view_point)
 
-    planner_req.n_of_candidates = number_of_candidates
+    planner_req.number_of_candidates = number_of_candidates
 
     return planner_req

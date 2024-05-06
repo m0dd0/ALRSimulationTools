@@ -13,32 +13,19 @@ import std_msgs.msg
 
 
 class GraspPlannerRequest(genpy.Message):
-    _md5sum = "95ce69db5826d237d3327872355fd4fd"
+    _md5sum = "ce15fc842738c8ade30a61b7b20527a3"
     _type = "grasping_benchmarks_ros/GraspPlannerRequest"
     _has_header = False  # flag to mark the presence of a Header object
-    _full_text = """# request params for grasp planners (not all of these must be filled in)
-
-# color and depth images
-sensor_msgs/Image color_image
+    _full_text = """sensor_msgs/Image rgb_image
 sensor_msgs/Image depth_image
-sensor_msgs/Image seg_image # assumed to be binary since no segmentation id is provided
-
-# camera info and intrinsics
-sensor_msgs/CameraInfo camera_info
-
-# pointcloud
-sensor_msgs/PointCloud2 cloud # in world frame
-sensor_msgs/PointCloud2 pointcloud_segmented
-
-# camera parameers
-geometry_msgs/PoseStamped view_point
-
-# additional parameters
-geometry_msgs/Pose aruco_board
-bool grasp_filter_flag
-
-# number of candidates to return
-int16 n_of_candidates
+sensor_msgs/Image segmentation_image # binary segmentation
+sensor_msgs/CameraInfo camera_info # camera info and intrinsics
+sensor_msgs/PointCloud2 pointcloud # pointcloud of the scene in world frame
+sensor_msgs/PointCloud2 pointlcoud_colors
+sensor_msgs/PointCloud2 pointcloud_segmented # pointcloud of the scene in camera frame
+sensor_msgs/PointCloud2 pointlcoud_segmented_colors
+geometry_msgs/PoseStamped view_point # camera intrinsics
+int16 number_of_candidates
 
 
 ================================================================================
@@ -320,16 +307,16 @@ float64 z
 float64 w
 """
     __slots__ = [
-        "color_image",
+        "rgb_image",
         "depth_image",
-        "seg_image",
+        "segmentation_image",
         "camera_info",
-        "cloud",
+        "pointcloud",
+        "pointlcoud_colors",
         "pointcloud_segmented",
+        "pointlcoud_segmented_colors",
         "view_point",
-        "aruco_board",
-        "grasp_filter_flag",
-        "n_of_candidates",
+        "number_of_candidates",
     ]
     _slot_types = [
         "sensor_msgs/Image",
@@ -338,9 +325,9 @@ float64 w
         "sensor_msgs/CameraInfo",
         "sensor_msgs/PointCloud2",
         "sensor_msgs/PointCloud2",
+        "sensor_msgs/PointCloud2",
+        "sensor_msgs/PointCloud2",
         "geometry_msgs/PoseStamped",
-        "geometry_msgs/Pose",
-        "bool",
         "int16",
     ]
 
@@ -352,7 +339,7 @@ float64 w
         changes.  You cannot mix in-order arguments and keyword arguments.
 
         The available fields are:
-           color_image,depth_image,seg_image,camera_info,cloud,pointcloud_segmented,view_point,aruco_board,grasp_filter_flag,n_of_candidates
+           rgb_image,depth_image,segmentation_image,camera_info,pointcloud,pointlcoud_colors,pointcloud_segmented,pointlcoud_segmented_colors,view_point,number_of_candidates
 
         :param args: complete set of field values, in .msg order
         :param kwds: use keyword arguments corresponding to message field names
@@ -361,37 +348,37 @@ float64 w
         if args or kwds:
             super(GraspPlannerRequest, self).__init__(*args, **kwds)
             # message fields cannot be None, assign default values for those that are
-            if self.color_image is None:
-                self.color_image = sensor_msgs.msg.Image()
+            if self.rgb_image is None:
+                self.rgb_image = sensor_msgs.msg.Image()
             if self.depth_image is None:
                 self.depth_image = sensor_msgs.msg.Image()
-            if self.seg_image is None:
-                self.seg_image = sensor_msgs.msg.Image()
+            if self.segmentation_image is None:
+                self.segmentation_image = sensor_msgs.msg.Image()
             if self.camera_info is None:
                 self.camera_info = sensor_msgs.msg.CameraInfo()
-            if self.cloud is None:
-                self.cloud = sensor_msgs.msg.PointCloud2()
+            if self.pointcloud is None:
+                self.pointcloud = sensor_msgs.msg.PointCloud2()
+            if self.pointlcoud_colors is None:
+                self.pointlcoud_colors = sensor_msgs.msg.PointCloud2()
             if self.pointcloud_segmented is None:
                 self.pointcloud_segmented = sensor_msgs.msg.PointCloud2()
+            if self.pointlcoud_segmented_colors is None:
+                self.pointlcoud_segmented_colors = sensor_msgs.msg.PointCloud2()
             if self.view_point is None:
                 self.view_point = geometry_msgs.msg.PoseStamped()
-            if self.aruco_board is None:
-                self.aruco_board = geometry_msgs.msg.Pose()
-            if self.grasp_filter_flag is None:
-                self.grasp_filter_flag = False
-            if self.n_of_candidates is None:
-                self.n_of_candidates = 0
+            if self.number_of_candidates is None:
+                self.number_of_candidates = 0
         else:
-            self.color_image = sensor_msgs.msg.Image()
+            self.rgb_image = sensor_msgs.msg.Image()
             self.depth_image = sensor_msgs.msg.Image()
-            self.seg_image = sensor_msgs.msg.Image()
+            self.segmentation_image = sensor_msgs.msg.Image()
             self.camera_info = sensor_msgs.msg.CameraInfo()
-            self.cloud = sensor_msgs.msg.PointCloud2()
+            self.pointcloud = sensor_msgs.msg.PointCloud2()
+            self.pointlcoud_colors = sensor_msgs.msg.PointCloud2()
             self.pointcloud_segmented = sensor_msgs.msg.PointCloud2()
+            self.pointlcoud_segmented_colors = sensor_msgs.msg.PointCloud2()
             self.view_point = geometry_msgs.msg.PoseStamped()
-            self.aruco_board = geometry_msgs.msg.Pose()
-            self.grasp_filter_flag = False
-            self.n_of_candidates = 0
+            self.number_of_candidates = 0
 
     def _get_types(self):
         """
@@ -408,12 +395,20 @@ float64 w
             _x = self
             buff.write(
                 _get_struct_3I().pack(
-                    _x.color_image.header.seq,
-                    _x.color_image.header.stamp.secs,
-                    _x.color_image.header.stamp.nsecs,
+                    _x.rgb_image.header.seq,
+                    _x.rgb_image.header.stamp.secs,
+                    _x.rgb_image.header.stamp.nsecs,
                 )
             )
-            _x = self.color_image.header.frame_id
+            _x = self.rgb_image.header.frame_id
+            length = len(_x)
+            if python3 or type(_x) == unicode:
+                _x = _x.encode("utf-8")
+                length = len(_x)
+            buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
+            _x = self
+            buff.write(_get_struct_2I().pack(_x.rgb_image.height, _x.rgb_image.width))
+            _x = self.rgb_image.encoding
             length = len(_x)
             if python3 or type(_x) == unicode:
                 _x = _x.encode("utf-8")
@@ -421,19 +416,9 @@ float64 w
             buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
             _x = self
             buff.write(
-                _get_struct_2I().pack(_x.color_image.height, _x.color_image.width)
+                _get_struct_BI().pack(_x.rgb_image.is_bigendian, _x.rgb_image.step)
             )
-            _x = self.color_image.encoding
-            length = len(_x)
-            if python3 or type(_x) == unicode:
-                _x = _x.encode("utf-8")
-                length = len(_x)
-            buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
-            _x = self
-            buff.write(
-                _get_struct_BI().pack(_x.color_image.is_bigendian, _x.color_image.step)
-            )
-            _x = self.color_image.data
+            _x = self.rgb_image.data
             length = len(_x)
             # - if encoded as a list instead, serialize as bytes instead of string
             if type(_x) in [list, tuple]:
@@ -478,20 +463,12 @@ float64 w
             _x = self
             buff.write(
                 _get_struct_3I().pack(
-                    _x.seg_image.header.seq,
-                    _x.seg_image.header.stamp.secs,
-                    _x.seg_image.header.stamp.nsecs,
+                    _x.segmentation_image.header.seq,
+                    _x.segmentation_image.header.stamp.secs,
+                    _x.segmentation_image.header.stamp.nsecs,
                 )
             )
-            _x = self.seg_image.header.frame_id
-            length = len(_x)
-            if python3 or type(_x) == unicode:
-                _x = _x.encode("utf-8")
-                length = len(_x)
-            buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
-            _x = self
-            buff.write(_get_struct_2I().pack(_x.seg_image.height, _x.seg_image.width))
-            _x = self.seg_image.encoding
+            _x = self.segmentation_image.header.frame_id
             length = len(_x)
             if python3 or type(_x) == unicode:
                 _x = _x.encode("utf-8")
@@ -499,9 +476,23 @@ float64 w
             buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
             _x = self
             buff.write(
-                _get_struct_BI().pack(_x.seg_image.is_bigendian, _x.seg_image.step)
+                _get_struct_2I().pack(
+                    _x.segmentation_image.height, _x.segmentation_image.width
+                )
             )
-            _x = self.seg_image.data
+            _x = self.segmentation_image.encoding
+            length = len(_x)
+            if python3 or type(_x) == unicode:
+                _x = _x.encode("utf-8")
+                length = len(_x)
+            buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
+            _x = self
+            buff.write(
+                _get_struct_BI().pack(
+                    _x.segmentation_image.is_bigendian, _x.segmentation_image.step
+                )
+            )
+            _x = self.segmentation_image.data
             length = len(_x)
             # - if encoded as a list instead, serialize as bytes instead of string
             if type(_x) in [list, tuple]:
@@ -549,22 +540,22 @@ float64 w
                     _x.camera_info.roi.height,
                     _x.camera_info.roi.width,
                     _x.camera_info.roi.do_rectify,
-                    _x.cloud.header.seq,
-                    _x.cloud.header.stamp.secs,
-                    _x.cloud.header.stamp.nsecs,
+                    _x.pointcloud.header.seq,
+                    _x.pointcloud.header.stamp.secs,
+                    _x.pointcloud.header.stamp.nsecs,
                 )
             )
-            _x = self.cloud.header.frame_id
+            _x = self.pointcloud.header.frame_id
             length = len(_x)
             if python3 or type(_x) == unicode:
                 _x = _x.encode("utf-8")
                 length = len(_x)
             buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
             _x = self
-            buff.write(_get_struct_2I().pack(_x.cloud.height, _x.cloud.width))
-            length = len(self.cloud.fields)
+            buff.write(_get_struct_2I().pack(_x.pointcloud.height, _x.pointcloud.width))
+            length = len(self.pointcloud.fields)
             buff.write(_struct_I.pack(length))
-            for val1 in self.cloud.fields:
+            for val1 in self.pointcloud.fields:
                 _x = val1.name
                 length = len(_x)
                 if python3 or type(_x) == unicode:
@@ -576,10 +567,12 @@ float64 w
             _x = self
             buff.write(
                 _get_struct_B2I().pack(
-                    _x.cloud.is_bigendian, _x.cloud.point_step, _x.cloud.row_step
+                    _x.pointcloud.is_bigendian,
+                    _x.pointcloud.point_step,
+                    _x.pointcloud.row_step,
                 )
             )
-            _x = self.cloud.data
+            _x = self.pointcloud.data
             length = len(_x)
             # - if encoded as a list instead, serialize as bytes instead of string
             if type(_x) in [list, tuple]:
@@ -589,7 +582,54 @@ float64 w
             _x = self
             buff.write(
                 _get_struct_B3I().pack(
-                    _x.cloud.is_dense,
+                    _x.pointcloud.is_dense,
+                    _x.pointlcoud_colors.header.seq,
+                    _x.pointlcoud_colors.header.stamp.secs,
+                    _x.pointlcoud_colors.header.stamp.nsecs,
+                )
+            )
+            _x = self.pointlcoud_colors.header.frame_id
+            length = len(_x)
+            if python3 or type(_x) == unicode:
+                _x = _x.encode("utf-8")
+                length = len(_x)
+            buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
+            _x = self
+            buff.write(
+                _get_struct_2I().pack(
+                    _x.pointlcoud_colors.height, _x.pointlcoud_colors.width
+                )
+            )
+            length = len(self.pointlcoud_colors.fields)
+            buff.write(_struct_I.pack(length))
+            for val1 in self.pointlcoud_colors.fields:
+                _x = val1.name
+                length = len(_x)
+                if python3 or type(_x) == unicode:
+                    _x = _x.encode("utf-8")
+                    length = len(_x)
+                buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
+                _x = val1
+                buff.write(_get_struct_IBI().pack(_x.offset, _x.datatype, _x.count))
+            _x = self
+            buff.write(
+                _get_struct_B2I().pack(
+                    _x.pointlcoud_colors.is_bigendian,
+                    _x.pointlcoud_colors.point_step,
+                    _x.pointlcoud_colors.row_step,
+                )
+            )
+            _x = self.pointlcoud_colors.data
+            length = len(_x)
+            # - if encoded as a list instead, serialize as bytes instead of string
+            if type(_x) in [list, tuple]:
+                buff.write(struct.Struct("<I%sB" % length).pack(length, *_x))
+            else:
+                buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
+            _x = self
+            buff.write(
+                _get_struct_B3I().pack(
+                    _x.pointlcoud_colors.is_dense,
                     _x.pointcloud_segmented.header.seq,
                     _x.pointcloud_segmented.header.stamp.secs,
                     _x.pointcloud_segmented.header.stamp.nsecs,
@@ -637,6 +677,54 @@ float64 w
             buff.write(
                 _get_struct_B3I().pack(
                     _x.pointcloud_segmented.is_dense,
+                    _x.pointlcoud_segmented_colors.header.seq,
+                    _x.pointlcoud_segmented_colors.header.stamp.secs,
+                    _x.pointlcoud_segmented_colors.header.stamp.nsecs,
+                )
+            )
+            _x = self.pointlcoud_segmented_colors.header.frame_id
+            length = len(_x)
+            if python3 or type(_x) == unicode:
+                _x = _x.encode("utf-8")
+                length = len(_x)
+            buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
+            _x = self
+            buff.write(
+                _get_struct_2I().pack(
+                    _x.pointlcoud_segmented_colors.height,
+                    _x.pointlcoud_segmented_colors.width,
+                )
+            )
+            length = len(self.pointlcoud_segmented_colors.fields)
+            buff.write(_struct_I.pack(length))
+            for val1 in self.pointlcoud_segmented_colors.fields:
+                _x = val1.name
+                length = len(_x)
+                if python3 or type(_x) == unicode:
+                    _x = _x.encode("utf-8")
+                    length = len(_x)
+                buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
+                _x = val1
+                buff.write(_get_struct_IBI().pack(_x.offset, _x.datatype, _x.count))
+            _x = self
+            buff.write(
+                _get_struct_B2I().pack(
+                    _x.pointlcoud_segmented_colors.is_bigendian,
+                    _x.pointlcoud_segmented_colors.point_step,
+                    _x.pointlcoud_segmented_colors.row_step,
+                )
+            )
+            _x = self.pointlcoud_segmented_colors.data
+            length = len(_x)
+            # - if encoded as a list instead, serialize as bytes instead of string
+            if type(_x) in [list, tuple]:
+                buff.write(struct.Struct("<I%sB" % length).pack(length, *_x))
+            else:
+                buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
+            _x = self
+            buff.write(
+                _get_struct_B3I().pack(
+                    _x.pointlcoud_segmented_colors.is_dense,
                     _x.view_point.header.seq,
                     _x.view_point.header.stamp.secs,
                     _x.view_point.header.stamp.nsecs,
@@ -650,7 +738,7 @@ float64 w
             buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
             _x = self
             buff.write(
-                _get_struct_14dBh().pack(
+                _get_struct_7dh().pack(
                     _x.view_point.pose.position.x,
                     _x.view_point.pose.position.y,
                     _x.view_point.pose.position.z,
@@ -658,15 +746,7 @@ float64 w
                     _x.view_point.pose.orientation.y,
                     _x.view_point.pose.orientation.z,
                     _x.view_point.pose.orientation.w,
-                    _x.aruco_board.position.x,
-                    _x.aruco_board.position.y,
-                    _x.aruco_board.position.z,
-                    _x.aruco_board.orientation.x,
-                    _x.aruco_board.orientation.y,
-                    _x.aruco_board.orientation.z,
-                    _x.aruco_board.orientation.w,
-                    _x.grasp_filter_flag,
-                    _x.n_of_candidates,
+                    _x.number_of_candidates,
                 )
             )
         except struct.error as se:
@@ -692,30 +772,32 @@ float64 w
         if python3:
             codecs.lookup_error("rosmsg").msg_type = self._type
         try:
-            if self.color_image is None:
-                self.color_image = sensor_msgs.msg.Image()
+            if self.rgb_image is None:
+                self.rgb_image = sensor_msgs.msg.Image()
             if self.depth_image is None:
                 self.depth_image = sensor_msgs.msg.Image()
-            if self.seg_image is None:
-                self.seg_image = sensor_msgs.msg.Image()
+            if self.segmentation_image is None:
+                self.segmentation_image = sensor_msgs.msg.Image()
             if self.camera_info is None:
                 self.camera_info = sensor_msgs.msg.CameraInfo()
-            if self.cloud is None:
-                self.cloud = sensor_msgs.msg.PointCloud2()
+            if self.pointcloud is None:
+                self.pointcloud = sensor_msgs.msg.PointCloud2()
+            if self.pointlcoud_colors is None:
+                self.pointlcoud_colors = sensor_msgs.msg.PointCloud2()
             if self.pointcloud_segmented is None:
                 self.pointcloud_segmented = sensor_msgs.msg.PointCloud2()
+            if self.pointlcoud_segmented_colors is None:
+                self.pointlcoud_segmented_colors = sensor_msgs.msg.PointCloud2()
             if self.view_point is None:
                 self.view_point = geometry_msgs.msg.PoseStamped()
-            if self.aruco_board is None:
-                self.aruco_board = geometry_msgs.msg.Pose()
             end = 0
             _x = self
             start = end
             end += 12
             (
-                _x.color_image.header.seq,
-                _x.color_image.header.stamp.secs,
-                _x.color_image.header.stamp.nsecs,
+                _x.rgb_image.header.seq,
+                _x.rgb_image.header.stamp.secs,
+                _x.rgb_image.header.stamp.nsecs,
             ) = _get_struct_3I().unpack(str[start:end])
             start = end
             end += 4
@@ -723,17 +805,17 @@ float64 w
             start = end
             end += length
             if python3:
-                self.color_image.header.frame_id = str[start:end].decode(
+                self.rgb_image.header.frame_id = str[start:end].decode(
                     "utf-8", "rosmsg"
                 )
             else:
-                self.color_image.header.frame_id = str[start:end]
+                self.rgb_image.header.frame_id = str[start:end]
             _x = self
             start = end
             end += 8
             (
-                _x.color_image.height,
-                _x.color_image.width,
+                _x.rgb_image.height,
+                _x.rgb_image.width,
             ) = _get_struct_2I().unpack(str[start:end])
             start = end
             end += 4
@@ -741,22 +823,22 @@ float64 w
             start = end
             end += length
             if python3:
-                self.color_image.encoding = str[start:end].decode("utf-8", "rosmsg")
+                self.rgb_image.encoding = str[start:end].decode("utf-8", "rosmsg")
             else:
-                self.color_image.encoding = str[start:end]
+                self.rgb_image.encoding = str[start:end]
             _x = self
             start = end
             end += 5
             (
-                _x.color_image.is_bigendian,
-                _x.color_image.step,
+                _x.rgb_image.is_bigendian,
+                _x.rgb_image.step,
             ) = _get_struct_BI().unpack(str[start:end])
             start = end
             end += 4
             (length,) = _struct_I.unpack(str[start:end])
             start = end
             end += length
-            self.color_image.data = str[start:end]
+            self.rgb_image.data = str[start:end]
             _x = self
             start = end
             end += 12
@@ -809,9 +891,9 @@ float64 w
             start = end
             end += 12
             (
-                _x.seg_image.header.seq,
-                _x.seg_image.header.stamp.secs,
-                _x.seg_image.header.stamp.nsecs,
+                _x.segmentation_image.header.seq,
+                _x.segmentation_image.header.stamp.secs,
+                _x.segmentation_image.header.stamp.nsecs,
             ) = _get_struct_3I().unpack(str[start:end])
             start = end
             end += 4
@@ -819,17 +901,17 @@ float64 w
             start = end
             end += length
             if python3:
-                self.seg_image.header.frame_id = str[start:end].decode(
+                self.segmentation_image.header.frame_id = str[start:end].decode(
                     "utf-8", "rosmsg"
                 )
             else:
-                self.seg_image.header.frame_id = str[start:end]
+                self.segmentation_image.header.frame_id = str[start:end]
             _x = self
             start = end
             end += 8
             (
-                _x.seg_image.height,
-                _x.seg_image.width,
+                _x.segmentation_image.height,
+                _x.segmentation_image.width,
             ) = _get_struct_2I().unpack(str[start:end])
             start = end
             end += 4
@@ -837,22 +919,24 @@ float64 w
             start = end
             end += length
             if python3:
-                self.seg_image.encoding = str[start:end].decode("utf-8", "rosmsg")
+                self.segmentation_image.encoding = str[start:end].decode(
+                    "utf-8", "rosmsg"
+                )
             else:
-                self.seg_image.encoding = str[start:end]
+                self.segmentation_image.encoding = str[start:end]
             _x = self
             start = end
             end += 5
             (
-                _x.seg_image.is_bigendian,
-                _x.seg_image.step,
+                _x.segmentation_image.is_bigendian,
+                _x.segmentation_image.step,
             ) = _get_struct_BI().unpack(str[start:end])
             start = end
             end += 4
             (length,) = _struct_I.unpack(str[start:end])
             start = end
             end += length
-            self.seg_image.data = str[start:end]
+            self.segmentation_image.data = str[start:end]
             _x = self
             start = end
             end += 12
@@ -918,9 +1002,9 @@ float64 w
                 _x.camera_info.roi.height,
                 _x.camera_info.roi.width,
                 _x.camera_info.roi.do_rectify,
-                _x.cloud.header.seq,
-                _x.cloud.header.stamp.secs,
-                _x.cloud.header.stamp.nsecs,
+                _x.pointcloud.header.seq,
+                _x.pointcloud.header.stamp.secs,
+                _x.pointcloud.header.stamp.nsecs,
             ) = _get_struct_6IB3I().unpack(str[start:end])
             self.camera_info.roi.do_rectify = bool(self.camera_info.roi.do_rectify)
             start = end
@@ -929,20 +1013,22 @@ float64 w
             start = end
             end += length
             if python3:
-                self.cloud.header.frame_id = str[start:end].decode("utf-8", "rosmsg")
+                self.pointcloud.header.frame_id = str[start:end].decode(
+                    "utf-8", "rosmsg"
+                )
             else:
-                self.cloud.header.frame_id = str[start:end]
+                self.pointcloud.header.frame_id = str[start:end]
             _x = self
             start = end
             end += 8
             (
-                _x.cloud.height,
-                _x.cloud.width,
+                _x.pointcloud.height,
+                _x.pointcloud.width,
             ) = _get_struct_2I().unpack(str[start:end])
             start = end
             end += 4
             (length,) = _struct_I.unpack(str[start:end])
-            self.cloud.fields = []
+            self.pointcloud.fields = []
             for i in range(0, length):
                 val1 = sensor_msgs.msg.PointField()
                 start = end
@@ -962,32 +1048,101 @@ float64 w
                     _x.datatype,
                     _x.count,
                 ) = _get_struct_IBI().unpack(str[start:end])
-                self.cloud.fields.append(val1)
+                self.pointcloud.fields.append(val1)
             _x = self
             start = end
             end += 9
             (
-                _x.cloud.is_bigendian,
-                _x.cloud.point_step,
-                _x.cloud.row_step,
+                _x.pointcloud.is_bigendian,
+                _x.pointcloud.point_step,
+                _x.pointcloud.row_step,
             ) = _get_struct_B2I().unpack(str[start:end])
-            self.cloud.is_bigendian = bool(self.cloud.is_bigendian)
+            self.pointcloud.is_bigendian = bool(self.pointcloud.is_bigendian)
             start = end
             end += 4
             (length,) = _struct_I.unpack(str[start:end])
             start = end
             end += length
-            self.cloud.data = str[start:end]
+            self.pointcloud.data = str[start:end]
             _x = self
             start = end
             end += 13
             (
-                _x.cloud.is_dense,
+                _x.pointcloud.is_dense,
+                _x.pointlcoud_colors.header.seq,
+                _x.pointlcoud_colors.header.stamp.secs,
+                _x.pointlcoud_colors.header.stamp.nsecs,
+            ) = _get_struct_B3I().unpack(str[start:end])
+            self.pointcloud.is_dense = bool(self.pointcloud.is_dense)
+            start = end
+            end += 4
+            (length,) = _struct_I.unpack(str[start:end])
+            start = end
+            end += length
+            if python3:
+                self.pointlcoud_colors.header.frame_id = str[start:end].decode(
+                    "utf-8", "rosmsg"
+                )
+            else:
+                self.pointlcoud_colors.header.frame_id = str[start:end]
+            _x = self
+            start = end
+            end += 8
+            (
+                _x.pointlcoud_colors.height,
+                _x.pointlcoud_colors.width,
+            ) = _get_struct_2I().unpack(str[start:end])
+            start = end
+            end += 4
+            (length,) = _struct_I.unpack(str[start:end])
+            self.pointlcoud_colors.fields = []
+            for i in range(0, length):
+                val1 = sensor_msgs.msg.PointField()
+                start = end
+                end += 4
+                (length,) = _struct_I.unpack(str[start:end])
+                start = end
+                end += length
+                if python3:
+                    val1.name = str[start:end].decode("utf-8", "rosmsg")
+                else:
+                    val1.name = str[start:end]
+                _x = val1
+                start = end
+                end += 9
+                (
+                    _x.offset,
+                    _x.datatype,
+                    _x.count,
+                ) = _get_struct_IBI().unpack(str[start:end])
+                self.pointlcoud_colors.fields.append(val1)
+            _x = self
+            start = end
+            end += 9
+            (
+                _x.pointlcoud_colors.is_bigendian,
+                _x.pointlcoud_colors.point_step,
+                _x.pointlcoud_colors.row_step,
+            ) = _get_struct_B2I().unpack(str[start:end])
+            self.pointlcoud_colors.is_bigendian = bool(
+                self.pointlcoud_colors.is_bigendian
+            )
+            start = end
+            end += 4
+            (length,) = _struct_I.unpack(str[start:end])
+            start = end
+            end += length
+            self.pointlcoud_colors.data = str[start:end]
+            _x = self
+            start = end
+            end += 13
+            (
+                _x.pointlcoud_colors.is_dense,
                 _x.pointcloud_segmented.header.seq,
                 _x.pointcloud_segmented.header.stamp.secs,
                 _x.pointcloud_segmented.header.stamp.nsecs,
             ) = _get_struct_B3I().unpack(str[start:end])
-            self.cloud.is_dense = bool(self.cloud.is_dense)
+            self.pointlcoud_colors.is_dense = bool(self.pointlcoud_colors.is_dense)
             start = end
             end += 4
             (length,) = _struct_I.unpack(str[start:end])
@@ -1052,12 +1207,83 @@ float64 w
             end += 13
             (
                 _x.pointcloud_segmented.is_dense,
+                _x.pointlcoud_segmented_colors.header.seq,
+                _x.pointlcoud_segmented_colors.header.stamp.secs,
+                _x.pointlcoud_segmented_colors.header.stamp.nsecs,
+            ) = _get_struct_B3I().unpack(str[start:end])
+            self.pointcloud_segmented.is_dense = bool(
+                self.pointcloud_segmented.is_dense
+            )
+            start = end
+            end += 4
+            (length,) = _struct_I.unpack(str[start:end])
+            start = end
+            end += length
+            if python3:
+                self.pointlcoud_segmented_colors.header.frame_id = str[
+                    start:end
+                ].decode("utf-8", "rosmsg")
+            else:
+                self.pointlcoud_segmented_colors.header.frame_id = str[start:end]
+            _x = self
+            start = end
+            end += 8
+            (
+                _x.pointlcoud_segmented_colors.height,
+                _x.pointlcoud_segmented_colors.width,
+            ) = _get_struct_2I().unpack(str[start:end])
+            start = end
+            end += 4
+            (length,) = _struct_I.unpack(str[start:end])
+            self.pointlcoud_segmented_colors.fields = []
+            for i in range(0, length):
+                val1 = sensor_msgs.msg.PointField()
+                start = end
+                end += 4
+                (length,) = _struct_I.unpack(str[start:end])
+                start = end
+                end += length
+                if python3:
+                    val1.name = str[start:end].decode("utf-8", "rosmsg")
+                else:
+                    val1.name = str[start:end]
+                _x = val1
+                start = end
+                end += 9
+                (
+                    _x.offset,
+                    _x.datatype,
+                    _x.count,
+                ) = _get_struct_IBI().unpack(str[start:end])
+                self.pointlcoud_segmented_colors.fields.append(val1)
+            _x = self
+            start = end
+            end += 9
+            (
+                _x.pointlcoud_segmented_colors.is_bigendian,
+                _x.pointlcoud_segmented_colors.point_step,
+                _x.pointlcoud_segmented_colors.row_step,
+            ) = _get_struct_B2I().unpack(str[start:end])
+            self.pointlcoud_segmented_colors.is_bigendian = bool(
+                self.pointlcoud_segmented_colors.is_bigendian
+            )
+            start = end
+            end += 4
+            (length,) = _struct_I.unpack(str[start:end])
+            start = end
+            end += length
+            self.pointlcoud_segmented_colors.data = str[start:end]
+            _x = self
+            start = end
+            end += 13
+            (
+                _x.pointlcoud_segmented_colors.is_dense,
                 _x.view_point.header.seq,
                 _x.view_point.header.stamp.secs,
                 _x.view_point.header.stamp.nsecs,
             ) = _get_struct_B3I().unpack(str[start:end])
-            self.pointcloud_segmented.is_dense = bool(
-                self.pointcloud_segmented.is_dense
+            self.pointlcoud_segmented_colors.is_dense = bool(
+                self.pointlcoud_segmented_colors.is_dense
             )
             start = end
             end += 4
@@ -1072,7 +1298,7 @@ float64 w
                 self.view_point.header.frame_id = str[start:end]
             _x = self
             start = end
-            end += 115
+            end += 58
             (
                 _x.view_point.pose.position.x,
                 _x.view_point.pose.position.y,
@@ -1081,17 +1307,8 @@ float64 w
                 _x.view_point.pose.orientation.y,
                 _x.view_point.pose.orientation.z,
                 _x.view_point.pose.orientation.w,
-                _x.aruco_board.position.x,
-                _x.aruco_board.position.y,
-                _x.aruco_board.position.z,
-                _x.aruco_board.orientation.x,
-                _x.aruco_board.orientation.y,
-                _x.aruco_board.orientation.z,
-                _x.aruco_board.orientation.w,
-                _x.grasp_filter_flag,
-                _x.n_of_candidates,
-            ) = _get_struct_14dBh().unpack(str[start:end])
-            self.grasp_filter_flag = bool(self.grasp_filter_flag)
+                _x.number_of_candidates,
+            ) = _get_struct_7dh().unpack(str[start:end])
             return self
         except struct.error as e:
             raise genpy.DeserializationError(e)  # most likely buffer underfill
@@ -1106,12 +1323,20 @@ float64 w
             _x = self
             buff.write(
                 _get_struct_3I().pack(
-                    _x.color_image.header.seq,
-                    _x.color_image.header.stamp.secs,
-                    _x.color_image.header.stamp.nsecs,
+                    _x.rgb_image.header.seq,
+                    _x.rgb_image.header.stamp.secs,
+                    _x.rgb_image.header.stamp.nsecs,
                 )
             )
-            _x = self.color_image.header.frame_id
+            _x = self.rgb_image.header.frame_id
+            length = len(_x)
+            if python3 or type(_x) == unicode:
+                _x = _x.encode("utf-8")
+                length = len(_x)
+            buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
+            _x = self
+            buff.write(_get_struct_2I().pack(_x.rgb_image.height, _x.rgb_image.width))
+            _x = self.rgb_image.encoding
             length = len(_x)
             if python3 or type(_x) == unicode:
                 _x = _x.encode("utf-8")
@@ -1119,19 +1344,9 @@ float64 w
             buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
             _x = self
             buff.write(
-                _get_struct_2I().pack(_x.color_image.height, _x.color_image.width)
+                _get_struct_BI().pack(_x.rgb_image.is_bigendian, _x.rgb_image.step)
             )
-            _x = self.color_image.encoding
-            length = len(_x)
-            if python3 or type(_x) == unicode:
-                _x = _x.encode("utf-8")
-                length = len(_x)
-            buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
-            _x = self
-            buff.write(
-                _get_struct_BI().pack(_x.color_image.is_bigendian, _x.color_image.step)
-            )
-            _x = self.color_image.data
+            _x = self.rgb_image.data
             length = len(_x)
             # - if encoded as a list instead, serialize as bytes instead of string
             if type(_x) in [list, tuple]:
@@ -1176,20 +1391,12 @@ float64 w
             _x = self
             buff.write(
                 _get_struct_3I().pack(
-                    _x.seg_image.header.seq,
-                    _x.seg_image.header.stamp.secs,
-                    _x.seg_image.header.stamp.nsecs,
+                    _x.segmentation_image.header.seq,
+                    _x.segmentation_image.header.stamp.secs,
+                    _x.segmentation_image.header.stamp.nsecs,
                 )
             )
-            _x = self.seg_image.header.frame_id
-            length = len(_x)
-            if python3 or type(_x) == unicode:
-                _x = _x.encode("utf-8")
-                length = len(_x)
-            buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
-            _x = self
-            buff.write(_get_struct_2I().pack(_x.seg_image.height, _x.seg_image.width))
-            _x = self.seg_image.encoding
+            _x = self.segmentation_image.header.frame_id
             length = len(_x)
             if python3 or type(_x) == unicode:
                 _x = _x.encode("utf-8")
@@ -1197,9 +1404,23 @@ float64 w
             buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
             _x = self
             buff.write(
-                _get_struct_BI().pack(_x.seg_image.is_bigendian, _x.seg_image.step)
+                _get_struct_2I().pack(
+                    _x.segmentation_image.height, _x.segmentation_image.width
+                )
             )
-            _x = self.seg_image.data
+            _x = self.segmentation_image.encoding
+            length = len(_x)
+            if python3 or type(_x) == unicode:
+                _x = _x.encode("utf-8")
+                length = len(_x)
+            buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
+            _x = self
+            buff.write(
+                _get_struct_BI().pack(
+                    _x.segmentation_image.is_bigendian, _x.segmentation_image.step
+                )
+            )
+            _x = self.segmentation_image.data
             length = len(_x)
             # - if encoded as a list instead, serialize as bytes instead of string
             if type(_x) in [list, tuple]:
@@ -1247,22 +1468,22 @@ float64 w
                     _x.camera_info.roi.height,
                     _x.camera_info.roi.width,
                     _x.camera_info.roi.do_rectify,
-                    _x.cloud.header.seq,
-                    _x.cloud.header.stamp.secs,
-                    _x.cloud.header.stamp.nsecs,
+                    _x.pointcloud.header.seq,
+                    _x.pointcloud.header.stamp.secs,
+                    _x.pointcloud.header.stamp.nsecs,
                 )
             )
-            _x = self.cloud.header.frame_id
+            _x = self.pointcloud.header.frame_id
             length = len(_x)
             if python3 or type(_x) == unicode:
                 _x = _x.encode("utf-8")
                 length = len(_x)
             buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
             _x = self
-            buff.write(_get_struct_2I().pack(_x.cloud.height, _x.cloud.width))
-            length = len(self.cloud.fields)
+            buff.write(_get_struct_2I().pack(_x.pointcloud.height, _x.pointcloud.width))
+            length = len(self.pointcloud.fields)
             buff.write(_struct_I.pack(length))
-            for val1 in self.cloud.fields:
+            for val1 in self.pointcloud.fields:
                 _x = val1.name
                 length = len(_x)
                 if python3 or type(_x) == unicode:
@@ -1274,10 +1495,12 @@ float64 w
             _x = self
             buff.write(
                 _get_struct_B2I().pack(
-                    _x.cloud.is_bigendian, _x.cloud.point_step, _x.cloud.row_step
+                    _x.pointcloud.is_bigendian,
+                    _x.pointcloud.point_step,
+                    _x.pointcloud.row_step,
                 )
             )
-            _x = self.cloud.data
+            _x = self.pointcloud.data
             length = len(_x)
             # - if encoded as a list instead, serialize as bytes instead of string
             if type(_x) in [list, tuple]:
@@ -1287,7 +1510,54 @@ float64 w
             _x = self
             buff.write(
                 _get_struct_B3I().pack(
-                    _x.cloud.is_dense,
+                    _x.pointcloud.is_dense,
+                    _x.pointlcoud_colors.header.seq,
+                    _x.pointlcoud_colors.header.stamp.secs,
+                    _x.pointlcoud_colors.header.stamp.nsecs,
+                )
+            )
+            _x = self.pointlcoud_colors.header.frame_id
+            length = len(_x)
+            if python3 or type(_x) == unicode:
+                _x = _x.encode("utf-8")
+                length = len(_x)
+            buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
+            _x = self
+            buff.write(
+                _get_struct_2I().pack(
+                    _x.pointlcoud_colors.height, _x.pointlcoud_colors.width
+                )
+            )
+            length = len(self.pointlcoud_colors.fields)
+            buff.write(_struct_I.pack(length))
+            for val1 in self.pointlcoud_colors.fields:
+                _x = val1.name
+                length = len(_x)
+                if python3 or type(_x) == unicode:
+                    _x = _x.encode("utf-8")
+                    length = len(_x)
+                buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
+                _x = val1
+                buff.write(_get_struct_IBI().pack(_x.offset, _x.datatype, _x.count))
+            _x = self
+            buff.write(
+                _get_struct_B2I().pack(
+                    _x.pointlcoud_colors.is_bigendian,
+                    _x.pointlcoud_colors.point_step,
+                    _x.pointlcoud_colors.row_step,
+                )
+            )
+            _x = self.pointlcoud_colors.data
+            length = len(_x)
+            # - if encoded as a list instead, serialize as bytes instead of string
+            if type(_x) in [list, tuple]:
+                buff.write(struct.Struct("<I%sB" % length).pack(length, *_x))
+            else:
+                buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
+            _x = self
+            buff.write(
+                _get_struct_B3I().pack(
+                    _x.pointlcoud_colors.is_dense,
                     _x.pointcloud_segmented.header.seq,
                     _x.pointcloud_segmented.header.stamp.secs,
                     _x.pointcloud_segmented.header.stamp.nsecs,
@@ -1335,6 +1605,54 @@ float64 w
             buff.write(
                 _get_struct_B3I().pack(
                     _x.pointcloud_segmented.is_dense,
+                    _x.pointlcoud_segmented_colors.header.seq,
+                    _x.pointlcoud_segmented_colors.header.stamp.secs,
+                    _x.pointlcoud_segmented_colors.header.stamp.nsecs,
+                )
+            )
+            _x = self.pointlcoud_segmented_colors.header.frame_id
+            length = len(_x)
+            if python3 or type(_x) == unicode:
+                _x = _x.encode("utf-8")
+                length = len(_x)
+            buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
+            _x = self
+            buff.write(
+                _get_struct_2I().pack(
+                    _x.pointlcoud_segmented_colors.height,
+                    _x.pointlcoud_segmented_colors.width,
+                )
+            )
+            length = len(self.pointlcoud_segmented_colors.fields)
+            buff.write(_struct_I.pack(length))
+            for val1 in self.pointlcoud_segmented_colors.fields:
+                _x = val1.name
+                length = len(_x)
+                if python3 or type(_x) == unicode:
+                    _x = _x.encode("utf-8")
+                    length = len(_x)
+                buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
+                _x = val1
+                buff.write(_get_struct_IBI().pack(_x.offset, _x.datatype, _x.count))
+            _x = self
+            buff.write(
+                _get_struct_B2I().pack(
+                    _x.pointlcoud_segmented_colors.is_bigendian,
+                    _x.pointlcoud_segmented_colors.point_step,
+                    _x.pointlcoud_segmented_colors.row_step,
+                )
+            )
+            _x = self.pointlcoud_segmented_colors.data
+            length = len(_x)
+            # - if encoded as a list instead, serialize as bytes instead of string
+            if type(_x) in [list, tuple]:
+                buff.write(struct.Struct("<I%sB" % length).pack(length, *_x))
+            else:
+                buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
+            _x = self
+            buff.write(
+                _get_struct_B3I().pack(
+                    _x.pointlcoud_segmented_colors.is_dense,
                     _x.view_point.header.seq,
                     _x.view_point.header.stamp.secs,
                     _x.view_point.header.stamp.nsecs,
@@ -1348,7 +1666,7 @@ float64 w
             buff.write(struct.Struct("<I%ss" % length).pack(length, _x))
             _x = self
             buff.write(
-                _get_struct_14dBh().pack(
+                _get_struct_7dh().pack(
                     _x.view_point.pose.position.x,
                     _x.view_point.pose.position.y,
                     _x.view_point.pose.position.z,
@@ -1356,15 +1674,7 @@ float64 w
                     _x.view_point.pose.orientation.y,
                     _x.view_point.pose.orientation.z,
                     _x.view_point.pose.orientation.w,
-                    _x.aruco_board.position.x,
-                    _x.aruco_board.position.y,
-                    _x.aruco_board.position.z,
-                    _x.aruco_board.orientation.x,
-                    _x.aruco_board.orientation.y,
-                    _x.aruco_board.orientation.z,
-                    _x.aruco_board.orientation.w,
-                    _x.grasp_filter_flag,
-                    _x.n_of_candidates,
+                    _x.number_of_candidates,
                 )
             )
         except struct.error as se:
@@ -1391,30 +1701,32 @@ float64 w
         if python3:
             codecs.lookup_error("rosmsg").msg_type = self._type
         try:
-            if self.color_image is None:
-                self.color_image = sensor_msgs.msg.Image()
+            if self.rgb_image is None:
+                self.rgb_image = sensor_msgs.msg.Image()
             if self.depth_image is None:
                 self.depth_image = sensor_msgs.msg.Image()
-            if self.seg_image is None:
-                self.seg_image = sensor_msgs.msg.Image()
+            if self.segmentation_image is None:
+                self.segmentation_image = sensor_msgs.msg.Image()
             if self.camera_info is None:
                 self.camera_info = sensor_msgs.msg.CameraInfo()
-            if self.cloud is None:
-                self.cloud = sensor_msgs.msg.PointCloud2()
+            if self.pointcloud is None:
+                self.pointcloud = sensor_msgs.msg.PointCloud2()
+            if self.pointlcoud_colors is None:
+                self.pointlcoud_colors = sensor_msgs.msg.PointCloud2()
             if self.pointcloud_segmented is None:
                 self.pointcloud_segmented = sensor_msgs.msg.PointCloud2()
+            if self.pointlcoud_segmented_colors is None:
+                self.pointlcoud_segmented_colors = sensor_msgs.msg.PointCloud2()
             if self.view_point is None:
                 self.view_point = geometry_msgs.msg.PoseStamped()
-            if self.aruco_board is None:
-                self.aruco_board = geometry_msgs.msg.Pose()
             end = 0
             _x = self
             start = end
             end += 12
             (
-                _x.color_image.header.seq,
-                _x.color_image.header.stamp.secs,
-                _x.color_image.header.stamp.nsecs,
+                _x.rgb_image.header.seq,
+                _x.rgb_image.header.stamp.secs,
+                _x.rgb_image.header.stamp.nsecs,
             ) = _get_struct_3I().unpack(str[start:end])
             start = end
             end += 4
@@ -1422,17 +1734,17 @@ float64 w
             start = end
             end += length
             if python3:
-                self.color_image.header.frame_id = str[start:end].decode(
+                self.rgb_image.header.frame_id = str[start:end].decode(
                     "utf-8", "rosmsg"
                 )
             else:
-                self.color_image.header.frame_id = str[start:end]
+                self.rgb_image.header.frame_id = str[start:end]
             _x = self
             start = end
             end += 8
             (
-                _x.color_image.height,
-                _x.color_image.width,
+                _x.rgb_image.height,
+                _x.rgb_image.width,
             ) = _get_struct_2I().unpack(str[start:end])
             start = end
             end += 4
@@ -1440,22 +1752,22 @@ float64 w
             start = end
             end += length
             if python3:
-                self.color_image.encoding = str[start:end].decode("utf-8", "rosmsg")
+                self.rgb_image.encoding = str[start:end].decode("utf-8", "rosmsg")
             else:
-                self.color_image.encoding = str[start:end]
+                self.rgb_image.encoding = str[start:end]
             _x = self
             start = end
             end += 5
             (
-                _x.color_image.is_bigendian,
-                _x.color_image.step,
+                _x.rgb_image.is_bigendian,
+                _x.rgb_image.step,
             ) = _get_struct_BI().unpack(str[start:end])
             start = end
             end += 4
             (length,) = _struct_I.unpack(str[start:end])
             start = end
             end += length
-            self.color_image.data = str[start:end]
+            self.rgb_image.data = str[start:end]
             _x = self
             start = end
             end += 12
@@ -1508,9 +1820,9 @@ float64 w
             start = end
             end += 12
             (
-                _x.seg_image.header.seq,
-                _x.seg_image.header.stamp.secs,
-                _x.seg_image.header.stamp.nsecs,
+                _x.segmentation_image.header.seq,
+                _x.segmentation_image.header.stamp.secs,
+                _x.segmentation_image.header.stamp.nsecs,
             ) = _get_struct_3I().unpack(str[start:end])
             start = end
             end += 4
@@ -1518,17 +1830,17 @@ float64 w
             start = end
             end += length
             if python3:
-                self.seg_image.header.frame_id = str[start:end].decode(
+                self.segmentation_image.header.frame_id = str[start:end].decode(
                     "utf-8", "rosmsg"
                 )
             else:
-                self.seg_image.header.frame_id = str[start:end]
+                self.segmentation_image.header.frame_id = str[start:end]
             _x = self
             start = end
             end += 8
             (
-                _x.seg_image.height,
-                _x.seg_image.width,
+                _x.segmentation_image.height,
+                _x.segmentation_image.width,
             ) = _get_struct_2I().unpack(str[start:end])
             start = end
             end += 4
@@ -1536,22 +1848,24 @@ float64 w
             start = end
             end += length
             if python3:
-                self.seg_image.encoding = str[start:end].decode("utf-8", "rosmsg")
+                self.segmentation_image.encoding = str[start:end].decode(
+                    "utf-8", "rosmsg"
+                )
             else:
-                self.seg_image.encoding = str[start:end]
+                self.segmentation_image.encoding = str[start:end]
             _x = self
             start = end
             end += 5
             (
-                _x.seg_image.is_bigendian,
-                _x.seg_image.step,
+                _x.segmentation_image.is_bigendian,
+                _x.segmentation_image.step,
             ) = _get_struct_BI().unpack(str[start:end])
             start = end
             end += 4
             (length,) = _struct_I.unpack(str[start:end])
             start = end
             end += length
-            self.seg_image.data = str[start:end]
+            self.segmentation_image.data = str[start:end]
             _x = self
             start = end
             end += 12
@@ -1625,9 +1939,9 @@ float64 w
                 _x.camera_info.roi.height,
                 _x.camera_info.roi.width,
                 _x.camera_info.roi.do_rectify,
-                _x.cloud.header.seq,
-                _x.cloud.header.stamp.secs,
-                _x.cloud.header.stamp.nsecs,
+                _x.pointcloud.header.seq,
+                _x.pointcloud.header.stamp.secs,
+                _x.pointcloud.header.stamp.nsecs,
             ) = _get_struct_6IB3I().unpack(str[start:end])
             self.camera_info.roi.do_rectify = bool(self.camera_info.roi.do_rectify)
             start = end
@@ -1636,20 +1950,22 @@ float64 w
             start = end
             end += length
             if python3:
-                self.cloud.header.frame_id = str[start:end].decode("utf-8", "rosmsg")
+                self.pointcloud.header.frame_id = str[start:end].decode(
+                    "utf-8", "rosmsg"
+                )
             else:
-                self.cloud.header.frame_id = str[start:end]
+                self.pointcloud.header.frame_id = str[start:end]
             _x = self
             start = end
             end += 8
             (
-                _x.cloud.height,
-                _x.cloud.width,
+                _x.pointcloud.height,
+                _x.pointcloud.width,
             ) = _get_struct_2I().unpack(str[start:end])
             start = end
             end += 4
             (length,) = _struct_I.unpack(str[start:end])
-            self.cloud.fields = []
+            self.pointcloud.fields = []
             for i in range(0, length):
                 val1 = sensor_msgs.msg.PointField()
                 start = end
@@ -1669,32 +1985,101 @@ float64 w
                     _x.datatype,
                     _x.count,
                 ) = _get_struct_IBI().unpack(str[start:end])
-                self.cloud.fields.append(val1)
+                self.pointcloud.fields.append(val1)
             _x = self
             start = end
             end += 9
             (
-                _x.cloud.is_bigendian,
-                _x.cloud.point_step,
-                _x.cloud.row_step,
+                _x.pointcloud.is_bigendian,
+                _x.pointcloud.point_step,
+                _x.pointcloud.row_step,
             ) = _get_struct_B2I().unpack(str[start:end])
-            self.cloud.is_bigendian = bool(self.cloud.is_bigendian)
+            self.pointcloud.is_bigendian = bool(self.pointcloud.is_bigendian)
             start = end
             end += 4
             (length,) = _struct_I.unpack(str[start:end])
             start = end
             end += length
-            self.cloud.data = str[start:end]
+            self.pointcloud.data = str[start:end]
             _x = self
             start = end
             end += 13
             (
-                _x.cloud.is_dense,
+                _x.pointcloud.is_dense,
+                _x.pointlcoud_colors.header.seq,
+                _x.pointlcoud_colors.header.stamp.secs,
+                _x.pointlcoud_colors.header.stamp.nsecs,
+            ) = _get_struct_B3I().unpack(str[start:end])
+            self.pointcloud.is_dense = bool(self.pointcloud.is_dense)
+            start = end
+            end += 4
+            (length,) = _struct_I.unpack(str[start:end])
+            start = end
+            end += length
+            if python3:
+                self.pointlcoud_colors.header.frame_id = str[start:end].decode(
+                    "utf-8", "rosmsg"
+                )
+            else:
+                self.pointlcoud_colors.header.frame_id = str[start:end]
+            _x = self
+            start = end
+            end += 8
+            (
+                _x.pointlcoud_colors.height,
+                _x.pointlcoud_colors.width,
+            ) = _get_struct_2I().unpack(str[start:end])
+            start = end
+            end += 4
+            (length,) = _struct_I.unpack(str[start:end])
+            self.pointlcoud_colors.fields = []
+            for i in range(0, length):
+                val1 = sensor_msgs.msg.PointField()
+                start = end
+                end += 4
+                (length,) = _struct_I.unpack(str[start:end])
+                start = end
+                end += length
+                if python3:
+                    val1.name = str[start:end].decode("utf-8", "rosmsg")
+                else:
+                    val1.name = str[start:end]
+                _x = val1
+                start = end
+                end += 9
+                (
+                    _x.offset,
+                    _x.datatype,
+                    _x.count,
+                ) = _get_struct_IBI().unpack(str[start:end])
+                self.pointlcoud_colors.fields.append(val1)
+            _x = self
+            start = end
+            end += 9
+            (
+                _x.pointlcoud_colors.is_bigendian,
+                _x.pointlcoud_colors.point_step,
+                _x.pointlcoud_colors.row_step,
+            ) = _get_struct_B2I().unpack(str[start:end])
+            self.pointlcoud_colors.is_bigendian = bool(
+                self.pointlcoud_colors.is_bigendian
+            )
+            start = end
+            end += 4
+            (length,) = _struct_I.unpack(str[start:end])
+            start = end
+            end += length
+            self.pointlcoud_colors.data = str[start:end]
+            _x = self
+            start = end
+            end += 13
+            (
+                _x.pointlcoud_colors.is_dense,
                 _x.pointcloud_segmented.header.seq,
                 _x.pointcloud_segmented.header.stamp.secs,
                 _x.pointcloud_segmented.header.stamp.nsecs,
             ) = _get_struct_B3I().unpack(str[start:end])
-            self.cloud.is_dense = bool(self.cloud.is_dense)
+            self.pointlcoud_colors.is_dense = bool(self.pointlcoud_colors.is_dense)
             start = end
             end += 4
             (length,) = _struct_I.unpack(str[start:end])
@@ -1759,12 +2144,83 @@ float64 w
             end += 13
             (
                 _x.pointcloud_segmented.is_dense,
+                _x.pointlcoud_segmented_colors.header.seq,
+                _x.pointlcoud_segmented_colors.header.stamp.secs,
+                _x.pointlcoud_segmented_colors.header.stamp.nsecs,
+            ) = _get_struct_B3I().unpack(str[start:end])
+            self.pointcloud_segmented.is_dense = bool(
+                self.pointcloud_segmented.is_dense
+            )
+            start = end
+            end += 4
+            (length,) = _struct_I.unpack(str[start:end])
+            start = end
+            end += length
+            if python3:
+                self.pointlcoud_segmented_colors.header.frame_id = str[
+                    start:end
+                ].decode("utf-8", "rosmsg")
+            else:
+                self.pointlcoud_segmented_colors.header.frame_id = str[start:end]
+            _x = self
+            start = end
+            end += 8
+            (
+                _x.pointlcoud_segmented_colors.height,
+                _x.pointlcoud_segmented_colors.width,
+            ) = _get_struct_2I().unpack(str[start:end])
+            start = end
+            end += 4
+            (length,) = _struct_I.unpack(str[start:end])
+            self.pointlcoud_segmented_colors.fields = []
+            for i in range(0, length):
+                val1 = sensor_msgs.msg.PointField()
+                start = end
+                end += 4
+                (length,) = _struct_I.unpack(str[start:end])
+                start = end
+                end += length
+                if python3:
+                    val1.name = str[start:end].decode("utf-8", "rosmsg")
+                else:
+                    val1.name = str[start:end]
+                _x = val1
+                start = end
+                end += 9
+                (
+                    _x.offset,
+                    _x.datatype,
+                    _x.count,
+                ) = _get_struct_IBI().unpack(str[start:end])
+                self.pointlcoud_segmented_colors.fields.append(val1)
+            _x = self
+            start = end
+            end += 9
+            (
+                _x.pointlcoud_segmented_colors.is_bigendian,
+                _x.pointlcoud_segmented_colors.point_step,
+                _x.pointlcoud_segmented_colors.row_step,
+            ) = _get_struct_B2I().unpack(str[start:end])
+            self.pointlcoud_segmented_colors.is_bigendian = bool(
+                self.pointlcoud_segmented_colors.is_bigendian
+            )
+            start = end
+            end += 4
+            (length,) = _struct_I.unpack(str[start:end])
+            start = end
+            end += length
+            self.pointlcoud_segmented_colors.data = str[start:end]
+            _x = self
+            start = end
+            end += 13
+            (
+                _x.pointlcoud_segmented_colors.is_dense,
                 _x.view_point.header.seq,
                 _x.view_point.header.stamp.secs,
                 _x.view_point.header.stamp.nsecs,
             ) = _get_struct_B3I().unpack(str[start:end])
-            self.pointcloud_segmented.is_dense = bool(
-                self.pointcloud_segmented.is_dense
+            self.pointlcoud_segmented_colors.is_dense = bool(
+                self.pointlcoud_segmented_colors.is_dense
             )
             start = end
             end += 4
@@ -1779,7 +2235,7 @@ float64 w
                 self.view_point.header.frame_id = str[start:end]
             _x = self
             start = end
-            end += 115
+            end += 58
             (
                 _x.view_point.pose.position.x,
                 _x.view_point.pose.position.y,
@@ -1788,17 +2244,8 @@ float64 w
                 _x.view_point.pose.orientation.y,
                 _x.view_point.pose.orientation.z,
                 _x.view_point.pose.orientation.w,
-                _x.aruco_board.position.x,
-                _x.aruco_board.position.y,
-                _x.aruco_board.position.z,
-                _x.aruco_board.orientation.x,
-                _x.aruco_board.orientation.y,
-                _x.aruco_board.orientation.z,
-                _x.aruco_board.orientation.w,
-                _x.grasp_filter_flag,
-                _x.n_of_candidates,
-            ) = _get_struct_14dBh().unpack(str[start:end])
-            self.grasp_filter_flag = bool(self.grasp_filter_flag)
+                _x.number_of_candidates,
+            ) = _get_struct_7dh().unpack(str[start:end])
             return self
         except struct.error as e:
             raise genpy.DeserializationError(e)  # most likely buffer underfill
@@ -1820,16 +2267,6 @@ def _get_struct_12d():
     if _struct_12d is None:
         _struct_12d = struct.Struct("<12d")
     return _struct_12d
-
-
-_struct_14dBh = None
-
-
-def _get_struct_14dBh():
-    global _struct_14dBh
-    if _struct_14dBh is None:
-        _struct_14dBh = struct.Struct("<14dBh")
-    return _struct_14dBh
 
 
 _struct_2I = None
@@ -1860,6 +2297,16 @@ def _get_struct_6IB3I():
     if _struct_6IB3I is None:
         _struct_6IB3I = struct.Struct("<6IB3I")
     return _struct_6IB3I
+
+
+_struct_7dh = None
+
+
+def _get_struct_7dh():
+    global _struct_7dh
+    if _struct_7dh is None:
+        _struct_7dh = struct.Struct("<7dh")
+    return _struct_7dh
 
 
 _struct_9d = None
@@ -1931,7 +2378,6 @@ class GraspPlannerResponse(genpy.Message):
     _type = "grasping_benchmarks_ros/GraspPlannerResponse"
     _has_header = False  # flag to mark the presence of a Header object
     _full_text = """
-# response params
 BenchmarkGrasp[] grasp_candidates
 
 ================================================================================
@@ -2321,6 +2767,6 @@ def _get_struct_f():
 
 class GraspPlanner(object):
     _type = "grasping_benchmarks_ros/GraspPlanner"
-    _md5sum = "607c293048bd66514884dc8a2d749009"
+    _md5sum = "681360c6ce2798f41a9c66377b71ca00"
     _request_class = GraspPlannerRequest
     _response_class = GraspPlannerResponse
