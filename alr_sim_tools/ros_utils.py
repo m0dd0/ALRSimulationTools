@@ -61,20 +61,7 @@ def create_grasp_planner_request(
         GraspPlannerRequest message
     """
 
-    (
-        rgb_image,
-        depth_image,
-        segmentation_image,
-        _,
-        pointcloud_points,
-        _,
-        _,
-        camera_position,
-        camera_quaternion,
-        camera_intrinsics,
-    ) = camera_data
-
-    camera_height, camera_width = rgb_image.shape[:2]
+    camera_height, camera_width = camera_data.rgb_image.shape[:2]
 
     assert GraspPlannerRequest is not None, "Could not import grasping_benchmarks_ros"
 
@@ -85,31 +72,44 @@ def create_grasp_planner_request(
     # header.stamp = rospy.Time.now()
     # header.frame_id = "rgbd_cam"
 
-    planner_req.color_image = ros_numpy.msgify(Image, rgb_image, "rgb8")
+    planner_req.color_image = ros_numpy.msgify(Image, camera_data.rgb_image, "rgb8")
 
     planner_req.depth_image = ros_numpy.msgify(
-        Image, (depth_image * 1000).astype("uint16"), "16UC1"
+        Image, (camera_data.depth_image * 1000).astype("uint16"), "16UC1"
     )
 
     planner_req.seg_image = ros_numpy.msgify(
-        Image, segmentation_image.astype(np.uint8), "8UC1"
+        Image, camera_data.segmentation_image.astype(np.uint8), "8UC1"
     )
 
     planner_req.camera_info = ros_numpy.msgify(
-        CameraInfo, camera_intrinsics, height=camera_height, width=camera_width
+        CameraInfo,
+        camera_data.camera_intrinsics,
+        height=camera_height,
+        width=camera_width,
     )
 
-    # TODO rgb info is not included yet
+    # TODO rgb info is not included in the pointcloud
     planner_req.cloud = ros_numpy.msgify(
         PointCloud2,
         to_record_array(
-            pointcloud_points, [("x", np.float32), ("y", np.float32), ("z", np.float32)]
+            camera_data.pointcloud_points,
+            [("x", np.float32), ("y", np.float32), ("z", np.float32)],
         ),
     )
 
+    planner_req.pointcloud_segmented = ros_numpy.msgify(
+        PointCloud2,
+        to_record_array(
+            camera_data.pointcloud_segmented_points,
+            [("x", np.float32), ("y", np.float32), ("z", np.float32)],
+        ),
+    )
     view_point = np.eye(4)
-    view_point[:3, :3] = Rotation.from_quat(camera_quaternion[[1, 2, 3, 0]]).as_matrix()
-    view_point[:3, 3] = camera_position
+    view_point[:3, :3] = Rotation.from_quat(
+        camera_data.camera_quaternion[[1, 2, 3, 0]]
+    ).as_matrix()
+    view_point[:3, 3] = camera_data.camera_position
     planner_req.view_point = ros_numpy.msgify(PoseStamped, view_point)
 
     planner_req.n_of_candidates = number_of_candidates
