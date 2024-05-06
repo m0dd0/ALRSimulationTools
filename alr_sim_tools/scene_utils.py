@@ -1,6 +1,5 @@
 from typing import List, Tuple
 import logging
-from dataclasses import dataclass
 from pathlib import Path
 import json
 
@@ -12,27 +11,12 @@ from alr_sim.sims.universal_sim.PrimitiveObjects import Box
 from alr_sim.core import Scene, RobotBase
 from alr_sim.sims.mj_beta import MjCamera
 
-from alr_sim_tools.typing_utils import NpArray
+from alr_sim_tools.data_utils import CameraData
 
 TABLE_TOP_Z_OFFSET = -0.02
 JOINT_CONFIGURATION_LOOKUP_FILE = (
     Path(__file__).parent / "joint_configuration_lookup.json"
 )
-
-
-@dataclass
-class CameraData:
-    rgb_img: NpArray["H,W,3", np.uint8]
-    depth_img: NpArray["H,W", np.float32]
-    seg_img: NpArray["H,W", np.int64]
-    seg_img_all: NpArray["H,W", np.int32]
-    pointcloud_points: NpArray["N,3", np.float64]
-    pointcloud_colors: NpArray["N,3", np.float64]  # in 0-1 range
-    pointcloud_segmented_points: NpArray["M,3", np.float64]
-    pointcloud_segmented_colors: NpArray["M,3", np.float64]
-    cam_pos: NpArray["3", np.float64]
-    cam_quat: NpArray["4", np.float64]
-    cam_intrinsics: NpArray["3, 3", np.float64]
 
 
 def reset_scene(factory_string: str, scene: Scene, agent):
@@ -69,16 +53,20 @@ def reset_scene(factory_string: str, scene: Scene, agent):
 
 
 def record_camera_data(
-    # TODO use own typing system
     factory_string: str = "mj_beta",
-    cam_pos: Tuple[float, float, float] = (0.5, 0.0, 1.0),
-    cam_quat: Tuple[float, float, float, float] = (-0.70710678, 0, 0, 0.70710678),
-    cam_height: int = 480,
-    cam_width: int = 640,
-    robot_pos: Tuple[float, float, float] = (0.0, 0.5, 0.2),
-    robot_quat: Tuple[float, float, float, float] = (0, 1, 0, 0),
+    camera_position: Tuple[float, float, float] = (0.5, 0.0, 1.0),
+    camera_quaternion: Tuple[float, float, float, float] = (
+        -0.70710678,
+        0,
+        0,
+        0.70710678,
+    ),
+    camera_height: int = 480,
+    camera_width: int = 640,
+    robot_position: Tuple[float, float, float] = (0.0, 0.5, 0.2),
+    robot_quaternion: Tuple[float, float, float, float] = (0, 1, 0, 0),
     object_list: List = None,
-    target_obj_name: str = None,
+    target_object_name: str = None,
     render_mode: Scene.RenderMode = Scene.RenderMode.BLIND,
     wait_time: float = 0.01,
     move_duration: float = 4,
@@ -88,20 +76,20 @@ def record_camera_data(
 
     Args:
         factory_string (str, optional): string specifying the simulation factory. Defaults to "mj_beta".
-        cam_pos (Tuple[float], optional): position of the camera. Defaults to (0.5, 0.0, 1.0).
-        cam_quat (Tuple[float], optional): quaternion of the camera. Defaults to (-0.70710678, 0, 0, 0.70710678).
-        cam_height (int, optional): height of the camera image in pixels. Defaults to 480.
-        cam_width (int, optional): width of the camera image in pixels. Defaults to 640.
-        robot_pos (Tuple[float], optional): position of the robot eef. Defaults to (0.0, 0.5, -0.01).
-        robot_quat (Tuple[float], optional): quaternion of the robot eef. Defaults to (0, 1, 0, 0).
+        camera_position (Tuple[float], optional): position of the camera. Defaults to (0.5, 0.0, 1.0).
+        camera_quaternion (Tuple[float], optional): quaternion of the camera. Defaults to (-0.70710678, 0, 0, 0.70710678).
+        camera_height (int, optional): height of the camera image in pixels. Defaults to 480.
+        camera_width (int, optional): width of the camera image in pixels. Defaults to 640.
+        robot_position (Tuple[float], optional): position of the robot eef. Defaults to (0.0, 0.5, -0.01).
+        robot_quaternion (Tuple[float], optional): quaternion of the robot eef. Defaults to (0, 1, 0, 0).
         object_list (List, optional): list of objects in the scene. Defaults to a box named "box1".
-        target_obj_name (str, optional): name of the object to segment. Defaults to None.
+        target_object_name (str, optional): name of the object to segment. Defaults to None.
         render_mode (Scene.RenderMode, optional): render mode of the scene. Defaults to Scene.RenderMode.BLIND.
         wait_time (float, optional): wait time after the robot has moved. Defaults to 0.1.
         move_duration (float, optional): duration of the robot movement. Defaults to 4.
 
     Returns:
-
+        Tuple[CameraData, Scene, RobotBase]: camera data, scene, and agent
     """
     if object_list is None:
         box1 = Box(
@@ -111,7 +99,7 @@ def record_camera_data(
             rgba=[0.1, 0.25, 0.3, 1],
         )
         object_list = [box1]
-        target_obj_name = "box1"
+        target_object_name = "box1"
 
     # Generate the chosen Scene and Agent
     sim_factory = SimRepository.get_factory(factory_string)
@@ -122,26 +110,26 @@ def record_camera_data(
 
     # configure camera
     if factory_string == "mj_beta":
-        cam = MjCamera("my_cam", init_pos=cam_pos, init_quat=cam_quat)
+        cam = MjCamera("my_cam", init_pos=camera_position, init_quat=camera_quaternion)
     elif factory_string == "mujoco":
         raise NotImplementedError()
         # cam = MujocoCamera("my_cam", init_pos=cam_pos, init_quat=cam_quat)
     else:
         raise NotImplementedError()
     scene.add_object(cam)
-    cam.set_cam_params(height=cam_height, width=cam_width)
+    cam.set_cam_params(height=camera_height, width=camera_width)
 
     # start simulation
     scene.start()
 
     # go to start position
-    beam_to_pos_quat(agent, robot_pos, robot_quat, move_duration)
+    beam_to_pos_quat(agent, robot_position, robot_quaternion, move_duration)
     agent.wait(wait_time)
 
     # get camera data
     rgb_img, depth_img = cam.get_image()
     pointcloud_points, pointcloud_colors = cam.calc_point_cloud()
-    target_obj_id = scene.get_obj_seg_id(obj_name=target_obj_name)
+    target_obj_id = scene.get_obj_seg_id(obj_name=target_object_name)
     seg_img_orig = cam.get_segmentation(depth=False)
 
     seg_img = np.where(seg_img_orig == target_obj_id, True, False)
@@ -152,22 +140,22 @@ def record_camera_data(
 
     # get camera parameters
     cam_intrinsics = cam.intrinsics
-    cam_pos, cam_quat = cam.get_cart_pos_quat()
+    camera_position, camera_quaternion = cam.get_cart_pos_quat()
 
     # save data
     return (
         CameraData(
-            rgb_img=rgb_img,
-            depth_img=depth_img,
-            seg_img=seg_img,
-            seg_img_all=seg_img_orig,
+            rgb_image=rgb_img,
+            depth_image=depth_img,
+            segmentation_image=seg_img,
+            segmentation_image_all=seg_img_orig,
             pointcloud_points=pointcloud_points,
             pointcloud_colors=pointcloud_colors,
             pointcloud_segmented_points=pointcloud_seg_points,
             pointcloud_segmented_colors=pointcloud_seg_colors,
-            cam_pos=cam_pos,
-            cam_quat=cam_quat,
-            cam_intrinsics=cam_intrinsics,
+            camera_position=camera_position,
+            camera_quaternion=camera_quaternion,
+            camera_intrinsics=cam_intrinsics,
         ),
         scene,
         agent,

@@ -5,9 +5,8 @@ import sys
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-import ros_numpy
 import rospy
-from std_msgs.msg import Header
+import ros_numpy
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import CameraInfo, Image, PointCloud2
 
@@ -48,17 +47,17 @@ def to_record_array(arr: NpArray, dtype: List[Tuple[str, Any]]) -> NpArray:
 
 
 def create_grasp_planner_request(
-    rgb_img: NpArray["H,W,3", float],
-    depth_img: NpArray["H,W", float],
-    seg_img: NpArray["H,W", int],
-    pc_points: NpArray["N,3", float],
-    pc_colors: NpArray["N,3", int],
-    cam_pos: NpArray["3", float],
-    cam_quat: NpArray["4", float],
-    cam_intrinsics: NpArray["3, 3", float],
-    cam_height: float,
-    cam_width: float,
-    num_of_candidates: int = 1,
+    rgb_image: NpArray["H,W,3", float],
+    depth_image: NpArray["H,W", float],
+    segmentation_image: NpArray["H,W", int],
+    pointcloud_points: NpArray["N,3", float],
+    pointcloud_colors: NpArray["N,3", int],
+    camera_position: NpArray["3", float],
+    camera_quaternion: NpArray["4", float],
+    camera_intrinsics: NpArray["3, 3", float],
+    camera_height: float,
+    camera_width: float,
+    number_of_candidates: int = 1,
 ) -> GraspPlannerRequest:
     """Create a GraspPlannerRequest ROS message from all necessary data"""
 
@@ -71,31 +70,33 @@ def create_grasp_planner_request(
     # header.stamp = rospy.Time.now()
     # header.frame_id = "rgbd_cam"
 
-    planner_req.color_image = ros_numpy.msgify(Image, rgb_img, "rgb8")
+    planner_req.color_image = ros_numpy.msgify(Image, rgb_image, "rgb8")
 
     planner_req.depth_image = ros_numpy.msgify(
-        Image, (depth_img * 1000).astype("uint16"), "16UC1"
+        Image, (depth_image * 1000).astype("uint16"), "16UC1"
     )
 
-    planner_req.seg_image = ros_numpy.msgify(Image, seg_img.astype(np.uint8), "8UC1")
+    planner_req.seg_image = ros_numpy.msgify(
+        Image, segmentation_image.astype(np.uint8), "8UC1"
+    )
 
     planner_req.camera_info = ros_numpy.msgify(
-        CameraInfo, cam_intrinsics, height=cam_height, width=cam_width
+        CameraInfo, camera_intrinsics, height=camera_height, width=camera_width
     )
 
     # TODO rgb info is not included yet
     planner_req.cloud = ros_numpy.msgify(
         PointCloud2,
         to_record_array(
-            pc_points, [("x", np.float32), ("y", np.float32), ("z", np.float32)]
+            pointcloud_points, [("x", np.float32), ("y", np.float32), ("z", np.float32)]
         ),
     )
 
     view_point = np.eye(4)
-    view_point[:3, :3] = Rotation.from_quat(cam_quat[[1, 2, 3, 0]]).as_matrix()
-    view_point[:3, 3] = cam_pos
+    view_point[:3, :3] = Rotation.from_quat(camera_quaternion[[1, 2, 3, 0]]).as_matrix()
+    view_point[:3, 3] = camera_position
     planner_req.view_point = ros_numpy.msgify(PoseStamped, view_point)
 
-    planner_req.n_of_candidates = num_of_candidates
+    planner_req.n_of_candidates = number_of_candidates
 
     return planner_req

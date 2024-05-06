@@ -46,3 +46,6 @@ While the process of capturing the data can be elimintad by using prerecorded da
 The usage of serialized simulation data comes with quite some overhead implementation wise (which format to use? how to (de)serialize?) and at the same time the capturing of the data has been speed up by beaming to the home position.
 Therfore for now it is not planned to use serialized simulation data as the main botlleneck is the execution of the grasp.
 
+## Quaternions vs Homogeneous Coordinates
+To be as consistent as possible with the ALR simulation framework, we try to use [w, x, y, z] quaternions for rotations in this repo exlusively.
+However for some third party libraries it is necessary to convert the quaternions to homogeneous coordinates.
