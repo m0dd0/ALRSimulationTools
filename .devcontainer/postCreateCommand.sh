@@ -1,1 +1,0 @@
-pip install -e /workspaces/ALRSimulationTools[dev]

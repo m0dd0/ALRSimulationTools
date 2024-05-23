@@ -7,7 +7,7 @@ The notebooks provide a variety of examples for common use cases.
 The visualization of the simulation is not easy to realize when running the simulation in a devcontainer.
 As this repo is mainly for testing and developing a graphical user interface for the simulation is quite important.
 Therefore an install script is provided that installs the required dependencies in a new conda environment.
-This script installs ROS noetic voa the robostack conda channel as well as the ALRSimulationFramework and this package. 
+This script installs ROS noetic via the robostack conda channel as well as the ALRSimulationFramework and this package. 
 The script does _not_ install the old MuJoCo version for the Simulationframework. Therfore it is not necessary to download the mujoco files from the mujoco website manually.
 
 `bash install.sh <path-to-alrs-SimulationFrameowkr> <name-of-the-conda-env-to-create>`
